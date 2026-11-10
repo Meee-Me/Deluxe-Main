@@ -1,0 +1,34 @@
+{
+  // Deluxe Main: the Deluxe account sign-in, and the one server every Deluxe
+  // website keeps its accounts and data on. File contents stay in Deluxe Drive.
+  "name": "deluxe-main",
+  "main": "worker/index.js",
+  "compatibility_date": "2025-09-01",
+  // Lets this Worker call Deluxe Drive's workers.dev address on the same account.
+  "compatibility_flags": ["global_fetch_strictly_public"],
+
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  },
+
+  // Accounts, sign-ins and every website's saved data (SQLite).
+  "durable_objects": { "bindings": [{ "name": "MAIN", "class_name": "Main" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Main"] }],
+
+  "vars": {
+    // Where Deluxe Drive (the file contents) runs.
+    "DRIVE_URL": "https://deluxe-drive.deluxelordd.workers.dev",
+    // Extra website addresses allowed to sign in, as JSON. Deluxe Mail's goes here:
+    // {"mail": ["https://your-mail-site.netlify.app"]}
+    "APP_ORIGINS": "{}"
+  }
+
+  // Optional, once both Workers are deployed on the same Cloudflare account:
+  // "services": [{ "binding": "DRIVE", "service": "deluxe-drive" }]
+  //
+  // Secrets (set with `npx wrangler secret put NAME`, never in this file):
+  //   APP_KEY_MAIL   the key Deluxe Mail's server uses to save mail here
+}

@@ -1,0 +1,10 @@
+{
+  "name": "deluxe-main",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node tests/main.test.mjs",
+    "dev": "node tests/dev-server.mjs",
+    "deploy": "npx wrangler deploy"
+  }
+}
