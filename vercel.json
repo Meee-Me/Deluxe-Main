@@ -2,6 +2,12 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "",
   "outputDirectory": "public",
-  "rewrites": [{ "source": "/connect", "destination": "/index.html" }],
-  "headers": [{ "source": "/(.*)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }] }]
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "https://deluxe-drive.deluxelordd.workers.dev/main/api/:path*" },
+    { "source": "/connect", "destination": "/index.html" }
+  ],
+  "headers": [
+    { "source": "/(.*)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }] },
+    { "source": "/deluxe.js", "headers": [{ "key": "Access-Control-Allow-Origin", "value": "*" }] }
+  ]
 }

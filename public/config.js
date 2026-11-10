@@ -1,9 +1,4 @@
-// Where Deluxe Main's server answers. It runs inside the Deluxe Cloudflare
-// Worker, under /main. Served from there, these pages use their own address;
-// a copy elsewhere (Vercel) talks to the Worker; a local dev server answers on
-// its own address.
-window.DELUXE_MAIN_API = /^\/main(\/|$)/.test(location.pathname)
-  ? location.origin + '/main'
-  : /^(localhost|127\.0\.0\.1)$/.test(location.hostname)
-    ? ''
-    : 'https://deluxe-drive.deluxelordd.workers.dev/main';
+// Deluxe Main lives on Vercel. Its /api addresses are passed on by Vercel
+// (vercel.json) to the Deluxe data server, so the pages simply ask their own
+// address. The local dev server answers /api itself.
+window.DELUXE_MAIN_API = '';

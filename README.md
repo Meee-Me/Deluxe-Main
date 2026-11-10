@@ -2,12 +2,13 @@
 
 The Deluxe account, and the one server every Deluxe website runs on for accounts and data.
 
-**Where it runs:** inside the one Deluxe Cloudflare Worker (`deluxe-drive`), which also keeps Deluxe
-Drive's files. The account pages are at **https://deluxe-drive.deluxelordd.workers.dev/main/** and the
-server at `/main/api/`. That Worker's repository (deluxe-drive) holds a copy of this repository's
-`worker/core.js`, `worker/apps.js` and `public/` (copied with its `tools/sync-main.sh`); this repository
-is where they are changed. The pages can also be put on Vercel: import this repository (`vercel.json`
-publishes `public/`); they talk to the Worker either way.
+**Where it runs:** Deluxe Main is a **Vercel** site: import this repository on Vercel (no build;
+`vercel.json` publishes `public/`). Its address, e.g. **https://deluxe-main.vercel.app**, is where people
+sign in, and `deluxe.js` is loaded from there by every Deluxe website. Vercel passes `/api/...` on to
+the Deluxe data server (the `deluxe-drive` Cloudflare Worker, which runs this repository's
+`worker/core.js` and keeps the data in its database), so to the browser everything is the one Vercel
+address. If the Vercel address is not `deluxe-main.vercel.app`, change it in `public/deluxe.js`
+(`MAIN`) and in the other sites (search for `deluxe-main.vercel.app`).
 
 - **Guests:** every Deluxe website can be used without an account ("Continue as guest"); what a guest
   does stays in that browser and moves into the account when they sign in.

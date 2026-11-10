@@ -1,6 +1,6 @@
 /* Sign in with Deluxe Main, for every Deluxe website.
  *
- *   <script src="https://deluxe-drive.deluxelordd.workers.dev/main/deluxe.js" data-app="translate"></script>
+ *   <script src="https://deluxe-main.vercel.app/deluxe.js" data-app="translate"></script>
  *
  *   Deluxe.ready.then(function (user) { ... });   // user, or null when signed out
  *   Deluxe.signIn();                               // goes to Deluxe Main and comes back signed in
@@ -19,8 +19,8 @@
   if (window.Deluxe && window.Deluxe.version) return;
 
   var script = document.currentScript;
-  // Deluxe Main lives where this file was loaded from (…/main/deluxe.js → …/main).
-  var MAIN = 'https://deluxe-drive.deluxelordd.workers.dev/main';
+  // Deluxe Main lives where this file was loaded from (on Vercel).
+  var MAIN = 'https://deluxe-main.vercel.app';
   try {
     if (script && script.src) MAIN = script.src.replace(/[?#].*$/, '').replace(/\/deluxe\.js$/, '');
   } catch (e) {}
