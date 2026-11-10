@@ -4,7 +4,8 @@
 import assert from 'node:assert/strict';
 import { pbkdf2Sync, randomBytes } from 'node:crypto';
 import { MainCore, handleFor } from '../worker/core.js';
-import { appForOrigin } from '../worker/apps.js';
+import { appForOrigin, APPS } from '../worker/apps.js';
+import { createHash } from 'node:crypto';
 import { NodeSql } from './fakes.mjs';
 
 const derive = (pw, salt) => pbkdf2Sync(pw, Buffer.from(salt, 'hex'), 120000, 32, 'sha256').toString('hex');
@@ -176,6 +177,16 @@ r = await call('PUT', '/api/data/mail/inbox/0002-y', { headers: appHeaders('mail
 assert.equal(r.status, 200);
 r = await call('PUT', '/api/data/drive/node:z', { headers: appHeaders('mail-secret', userId), body: { value: {} } });
 assert.equal(r.status, 403);
+// Without a Worker secret, the key is checked against the fingerprint in apps.js.
+const realHash = APPS.mail.keyHash;
+const testKey = 'test-only-key-0123456789abcdefghijklmnop';
+APPS.mail.keyHash = createHash('sha256').update(testKey).digest('hex');
+const plain = new MainCore(new NodeSql(), {}, {});
+const probe = (key) => plain.handle(new Request(ORIGIN + '/api/server/account?handle=x', { headers: { Authorization: `App ${key}`, 'X-Deluxe-App': 'mail' } }));
+assert.equal((await probe(testKey)).status, 404, 'right key accepted (no such account)');
+assert.equal((await probe('wrong-key-wrong-key-wrong-key-12345')).status, 401);
+APPS.mail.keyHash = realHash;
+assert.match(realHash, /^[0-9a-f]{64}$/);
 ok('website server key reaches only its own data');
 
 /* account page, sessions, password */
