@@ -4,9 +4,10 @@
 // people back only to these origins, and the app a sign-in is for is taken from
 // the origin, never from what the site asks for.
 //
-//   origins  where the site is served ("*" stands for one name part, so
-//            "https://*--deluxe-translate-8m27.netlify.app" covers Netlify
-//            deploy previews)
+//   origins  where the site is served. "*" stands for one name part and is
+//            only used for Netlify deploy previews ("*--site.netlify.app"),
+//            which only that site's owner can create. Never use it for
+//            vercel.app names: anyone can make "deluxe-docs-anything".
 //   reads    other apps' data this site may read (never write)
 //   url      where the site lives, for the list on Deluxe Main's home page
 //
@@ -24,22 +25,14 @@ export const APPS = {
     name: 'Deluxe Drive',
     about: 'Keep and share your files',
     url: 'https://deluxe-drive.deluxelordd.workers.dev',
-    origins: [
-      'https://deluxe-drive.deluxelordd.workers.dev',
-      'https://deluxe-drive-xi.vercel.app',
-      'https://deluxe-drive-*.vercel.app',
-    ],
+    origins: ['https://deluxe-drive.deluxelordd.workers.dev', 'https://deluxe-drive-xi.vercel.app'],
     reads: [],
   },
   docs: {
     name: 'Deluxe Docs',
     about: 'Open PDFs, Word, Excel and slides',
     url: 'https://deluxe-docs-iota.vercel.app',
-    origins: [
-      'https://deluxe-docs.deluxelordd.workers.dev',
-      'https://deluxe-docs-iota.vercel.app',
-      'https://deluxe-docs-*.vercel.app',
-    ],
+    origins: ['https://deluxe-docs.deluxelordd.workers.dev', 'https://deluxe-docs-iota.vercel.app'],
     // Docs lists and opens the files kept in Deluxe Drive.
     reads: ['drive'],
   },
@@ -47,7 +40,7 @@ export const APPS = {
     name: 'Deluxe Convert',
     about: 'Convert files in your browser',
     url: 'https://deluxe-convert-cloud.deluxelordd.workers.dev',
-    origins: ['https://deluxe-convert-cloud.deluxelordd.workers.dev'],
+    origins: ['https://deluxe-convert-cloud.deluxelordd.workers.dev', 'https://deluxe-convert.deluxelordd.workers.dev'],
     reads: [],
   },
   translate: {
@@ -68,7 +61,7 @@ export const APPS = {
     name: 'Deluxe Mail',
     about: 'Your @deluxemail.com inbox',
     url: '',
-    // Add the Mail site's address with APP_ORIGINS, e.g. {"mail": ["https://deluxemail.netlify.app"]}.
+    // Add the Mail site's address here or with APP_ORIGINS, e.g. {"mail": ["https://deluxemail.vercel.app"]}.
     origins: [],
     reads: [],
   },

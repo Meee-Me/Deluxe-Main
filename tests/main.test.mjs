@@ -52,6 +52,8 @@ assert.equal(appForOrigin('https://deploy-preview-4--deluxe-translate-8m27.netli
 assert.equal(appForOrigin('https://evil.netlify.app'), null);
 assert.equal(appForOrigin('https://deluxe-translate-8m27.netlify.app.evil.com'), null);
 assert.equal(appForOrigin('http://localhost:8000', {}, 'docs'), null);
+assert.equal(appForOrigin('https://deluxe-docs-evil.vercel.app'), null, 'no vercel.app wildcards');
+assert.equal(appForOrigin('https://deluxe-docs-iota.vercel.app'), 'docs');
 assert.equal(appForOrigin('http://localhost:8000', { ALLOW_LOCALHOST: '1' }, 'docs'), 'docs');
 assert.equal(appForOrigin('https://mail.example.netlify.app', env), 'mail');
 assert.equal(handleFor('Shivad Sujith'), 'shivad.sujith');

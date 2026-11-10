@@ -6,12 +6,12 @@
   <title>Deluxe Main</title>
   <meta name="description" content="Your Deluxe account: one sign-in for Deluxe Drive, Docs, Mail, Convert, Translate and YouTube Guider AI.">
   <meta name="color-scheme" content="light dark">
-  <link rel="icon" href="/icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/styles.css">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <header class="top">
-    <a class="brand" href="/"><img src="/icon.svg" alt="" width="28" height="28"> Deluxe Main</a>
+    <a class="brand" href="./"><img src="icon.svg" alt="" width="28" height="28"> Deluxe Main</a>
     <div id="top-user" class="top-user" hidden></div>
   </header>
 
@@ -38,17 +38,18 @@
         <button class="btn primary wide" id="auth-submit" type="submit">Sign in</button>
       </form>
       <p class="switch"><span id="auth-switch-text">New here?</span> <button class="link" id="auth-switch" type="button">Create a Deluxe account</button></p>
+      <button class="btn wide guest" id="auth-guest" type="button" hidden>Continue as guest</button>
     </section>
 
     <!-- Continue to a website -->
     <section class="card auth" id="connect" hidden>
-      <div class="connect-logos"><img src="/icon.svg" alt="" width="44" height="44"><span>→</span><span class="app-dot" id="connect-dot">?</span></div>
+      <div class="connect-logos"><img src="icon.svg" alt="" width="44" height="44"><span>→</span><span class="app-dot" id="connect-dot">?</span></div>
       <h1 id="connect-title">Continue to …</h1>
       <p class="muted" id="connect-lead"></p>
       <p class="error" id="connect-error" role="alert" hidden></p>
       <button class="btn primary wide" id="connect-go" type="button">Continue</button>
       <button class="btn wide" id="connect-other" type="button">Use another account</button>
-      <button class="link" id="connect-cancel" type="button">Cancel</button>
+      <button class="link" id="connect-cancel" type="button">Continue as guest</button>
     </section>
 
     <!-- Home -->
@@ -93,6 +94,7 @@
   </dialog>
 
   <footer class="foot">Directed by Shivad Sujith · AI support by Claude</footer>
-  <script type="module" src="/app.js"></script>
+  <script src="config.js"></script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>

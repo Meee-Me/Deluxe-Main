@@ -1,6 +1,6 @@
 /* Sign in with Deluxe Main, for every Deluxe website.
  *
- *   <script src="https://deluxe-main.deluxelordd.workers.dev/deluxe.js"></script>
+ *   <script src="https://deluxe-drive.deluxelordd.workers.dev/main/deluxe.js" data-app="translate"></script>
  *
  *   Deluxe.ready.then(function (user) { ... });   // user, or null when signed out
  *   Deluxe.signIn();                               // goes to Deluxe Main and comes back signed in
@@ -8,8 +8,10 @@
  *   Deluxe.user();  Deluxe.token();
  *   Deluxe.data.get(key) / put(key, value) / remove(key) / list({ prefix, order, limit }) / batch({ put, delete }) / clear(prefix)
  *   Deluxe.onChange(function (user) { ... });
- *   Deluxe.button(element);                        // a ready-made sign-in / account button
+ *   Deluxe.button(element);                        // sign-in / account button, plus a menu of every Deluxe website
+ *   Deluxe.isGuest();  Deluxe.continueAsGuest();   // using the site without an account
  *
+ * Signing in is saved: the key lasts 180 days and each visit renews it.
  * Accounts are only ever made on Deluxe Main. A website gets its own key for
  * the signed-in account, which can only reach that website's own data. */
 (function () {
@@ -17,10 +19,24 @@
   if (window.Deluxe && window.Deluxe.version) return;
 
   var script = document.currentScript;
-  var MAIN = 'https://deluxe-main.deluxelordd.workers.dev';
+  // Deluxe Main lives where this file was loaded from (…/main/deluxe.js → …/main).
+  var MAIN = 'https://deluxe-drive.deluxelordd.workers.dev/main';
   try {
-    if (script && script.src) MAIN = new URL(script.src).origin;
+    if (script && script.src) MAIN = script.src.replace(/[?#].*$/, '').replace(/\/deluxe\.js$/, '');
   } catch (e) {}
+  var SAVED_MS = 180 * 24 * 60 * 60 * 1000;
+  var GUEST_KEY = 'deluxe.guest';
+  // Every Deluxe website, for the menu.
+  var SITES = [
+    ['Deluxe Main', MAIN + '/', 'Your Deluxe account'],
+    ['Deluxe Drive', 'https://deluxe-drive.deluxelordd.workers.dev', 'Your files'],
+    ['Deluxe Docs', 'https://deluxe-docs-iota.vercel.app', 'Open documents'],
+    ['Deluxe Mail', '', 'Your @deluxemail.com inbox'],
+    ['Deluxe Convert', 'https://deluxe-convert-cloud.deluxelordd.workers.dev', 'Convert files'],
+    ['Deluxe Translate', 'https://deluxe-translate-8m27.netlify.app', 'Text and photos'],
+    ['YouTube Guider AI', 'https://youtube-guide-ai.netlify.app', 'Channel stats']
+  ];
+  if (window.DELUXE_MAIL_URL) SITES[3][1] = window.DELUXE_MAIL_URL;
   var APP = (script && script.getAttribute('data-app')) || '';
   var KEY = 'deluxe.session.v1';
   var listeners = [];
@@ -69,7 +85,19 @@
   }
 
   // Coming back from Deluxe Main: #deluxe_code=... is traded for this site's key.
+  function setGuest(on) {
+    try {
+      if (on) localStorage.setItem(GUEST_KEY, '1');
+      else localStorage.removeItem(GUEST_KEY);
+    } catch (e) {}
+  }
+
   function finishSignIn() {
+    // Came back from Deluxe Main as a guest.
+    if (/(?:^#|&)deluxe_guest=1/.test(location.hash || '')) {
+      setGuest(true);
+      try { history.replaceState(history.state, '', location.pathname + location.search); } catch (e) {}
+    }
     var m = /(?:^#|&)deluxe_code=([0-9a-f]{48})/.exec(location.hash || '');
     if (!m) return Promise.resolve(session ? session.user : null);
     var rest = (location.hash || '').replace(/^#/, '').split('&').filter(function (p) { return p.indexOf('deluxe_code=') !== 0; }).join('&');
@@ -82,6 +110,7 @@
     })
       .then(function (r) { return r.json().then(function (d) { if (!r.ok) throw new Error(d.error || 'Sign-in failed.'); return d; }); })
       .then(function (d) {
+        setGuest(false);
         save({ token: d.token, user: d.user, app: d.app, exp: Date.now() + (Number(d.expiresIn) || 86400) * 1000, main: MAIN });
         return d.user;
       })
@@ -126,6 +155,12 @@
     ready: null,
     init: function (o) { if (o && o.app) APP = o.app; return Deluxe.ready; },
     user: function () { return session ? session.user : null; },
+    isGuest: function () {
+      if (session) return false;
+      try { return localStorage.getItem(GUEST_KEY) === '1'; } catch (e) { return false; }
+    },
+    continueAsGuest: function () { setGuest(true); },
+    sites: function () { return SITES.filter(function (x) { return x[1]; }).map(function (x) { return { name: x[0], url: x[1], about: x[2] }; }); },
     token: function () { return session ? session.token : null; },
     app: function () { return (session && session.app) || APP; },
     signIn: function (returnUrl) {
@@ -136,6 +171,7 @@
     },
     signOut: function () {
       var t = session && session.token;
+      setGuest(false);
       save(null);
       if (t) fetch(MAIN + '/api/auth/logout', { method: 'POST', headers: { Authorization: 'Bearer ' + t }, credentials: 'omit' }).catch(function () {});
     },
@@ -148,56 +184,104 @@
   Deluxe.ready = finishSignIn().then(function (user) {
     // A key Deluxe Main has ended (signed out there, password changed) is dropped.
     if (session) api('/api/auth/me').then(function (d) {
-      if (d && d.user && session) { session.user = d.user; save(session); }
+      // Each visit renews the saved sign-in.
+      if (d && d.user && session) { session.user = d.user; session.exp = Date.now() + (Number(d.expiresIn) * 1000 || SAVED_MS); save(session); }
     }).catch(function () {});
     return user;
   });
 
-  // A small "Sign in with Deluxe Main" button that turns into the account's name.
+  // "Sign in with Deluxe Main" (or the account's name), and a menu that links
+  // every Deluxe website, for guests too.
   function button(el, opts) {
     opts = opts || {};
     if (!el) return;
     var css = 'font:600 14px/1 system-ui,sans-serif;border-radius:999px;padding:9px 14px;cursor:pointer;border:1px solid rgba(127,127,127,.35);background:' +
-      (opts.background || '#6d4aff') + ';color:' + (opts.color || '#fff') + ';display:inline-flex;align-items:center;gap:8px;white-space:nowrap';
+      (opts.background || '#6d4aff') + ';color:' + (opts.color || '#fff') + ';display:inline-flex;align-items:center;gap:8px;white-space:nowrap;min-height:38px';
+    var menuCss = 'position:absolute;right:0;top:calc(100% + 6px);z-index:9999;min-width:240px;max-width:calc(100vw - 24px);padding:6px;border-radius:12px;background:#fff;color:#111;box-shadow:0 8px 30px rgba(0,0,0,.25);font:14px/1.3 system-ui,sans-serif;text-align:left';
+    var open = null;
+    document.addEventListener('click', function () { if (open) { open.hidden = true; open = null; } });
+
+    function item(menu, label, sub, fn, href) {
+      var i = document.createElement(href ? 'a' : 'button');
+      if (href) { i.href = href; i.target = '_blank'; i.rel = 'noopener'; } else i.type = 'button';
+      i.style.cssText = 'display:block;width:100%;text-align:left;padding:9px 12px;border:0;background:none;border-radius:8px;cursor:pointer;font:inherit;color:inherit;text-decoration:none';
+      i.appendChild(document.createTextNode(label));
+      if (sub) {
+        var small = document.createElement('div');
+        small.textContent = sub;
+        small.style.cssText = 'font-size:12px;color:#666;margin-top:2px';
+        i.appendChild(small);
+      }
+      i.onmouseenter = function () { i.style.background = '#f0edff'; };
+      i.onmouseleave = function () { i.style.background = 'none'; };
+      if (fn) i.onclick = function () { menu.hidden = true; open = null; fn(); };
+      menu.appendChild(i);
+    }
+    function heading(menu, text) {
+      var h = document.createElement('div');
+      h.textContent = text;
+      h.style.cssText = 'padding:8px 12px 4px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#777';
+      menu.appendChild(h);
+    }
+    function withMenu(trigger, fill) {
+      var menu = document.createElement('div');
+      menu.hidden = true;
+      menu.style.cssText = menuCss;
+      fill(menu);
+      trigger.onclick = function (e) {
+        e.stopPropagation();
+        if (open && open !== menu) open.hidden = true;
+        menu.hidden = !menu.hidden;
+        open = menu.hidden ? null : menu;
+      };
+      var wrap = document.createElement('span');
+      wrap.style.cssText = 'position:relative;display:inline-block';
+      wrap.appendChild(trigger);
+      wrap.appendChild(menu);
+      return wrap;
+    }
+    function siteList(menu) {
+      heading(menu, 'Deluxe websites');
+      Deluxe.sites().forEach(function (site) {
+        if (site.url && location.href.indexOf(site.url) === 0) return;
+        item(menu, site.name, site.about, null, site.url);
+      });
+    }
     function draw(user) {
       el.innerHTML = '';
+      var box = document.createElement('span');
+      box.style.cssText = 'display:inline-flex;gap:8px;align-items:center';
       var b = document.createElement('button');
       b.type = 'button';
       b.style.cssText = css;
       if (!user) {
         b.textContent = opts.label || 'Sign in with Deluxe Main';
+        b.title = Deluxe.isGuest() ? 'You are using this site as a guest' : '';
         b.onclick = function () { Deluxe.signIn(); };
-        el.appendChild(b);
-        return;
+        box.appendChild(b);
+      } else {
+        var initial = document.createElement('span');
+        initial.textContent = (user.name || '?').slice(0, 1).toUpperCase();
+        initial.style.cssText = 'width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.25);display:inline-grid;place-items:center;font-size:12px';
+        b.appendChild(initial);
+        b.appendChild(document.createTextNode(user.name));
+        b.title = 'Signed in with Deluxe Main';
+        box.appendChild(withMenu(b, function (menu) {
+          heading(menu, 'Signed in as ' + user.name);
+          item(menu, 'Your Deluxe account', 'Name, password, websites', null, MAIN + '/');
+          item(menu, 'Sign out', '', function () { Deluxe.signOut(); });
+          siteList(menu);
+        }));
       }
-      var initial = document.createElement('span');
-      initial.textContent = (user.name || '?').slice(0, 1).toUpperCase();
-      initial.style.cssText = 'width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.25);display:inline-grid;place-items:center;font-size:12px';
-      b.appendChild(initial);
-      b.appendChild(document.createTextNode(user.name));
-      b.title = 'Signed in with Deluxe Main';
-      var menu = document.createElement('div');
-      menu.hidden = true;
-      menu.style.cssText = 'position:absolute;right:0;top:calc(100% + 6px);z-index:9999;min-width:200px;padding:6px;border-radius:12px;background:#fff;color:#111;box-shadow:0 8px 30px rgba(0,0,0,.25);font:14px system-ui,sans-serif';
-      function item(label, fn) {
-        var i = document.createElement('button');
-        i.type = 'button';
-        i.textContent = label;
-        i.style.cssText = 'display:block;width:100%;text-align:left;padding:10px 12px;border:0;background:none;border-radius:8px;cursor:pointer;font:inherit;color:inherit';
-        i.onmouseenter = function () { i.style.background = '#f0edff'; };
-        i.onmouseleave = function () { i.style.background = 'none'; };
-        i.onclick = function () { menu.hidden = true; fn(); };
-        menu.appendChild(i);
-      }
-      item('Your Deluxe account', function () { window.open(MAIN + '/', '_blank', 'noopener'); });
-      item('Sign out', function () { Deluxe.signOut(); });
-      b.onclick = function (e) { e.stopPropagation(); menu.hidden = !menu.hidden; };
-      document.addEventListener('click', function () { menu.hidden = true; });
-      var wrap = document.createElement('span');
-      wrap.style.cssText = 'position:relative;display:inline-block';
-      wrap.appendChild(b);
-      wrap.appendChild(menu);
-      el.appendChild(wrap);
+      // The Deluxe websites menu, for guests and signed-in people alike.
+      var g = document.createElement('button');
+      g.type = 'button';
+      g.setAttribute('aria-label', 'Deluxe websites');
+      g.title = 'Deluxe websites';
+      g.textContent = '∷';
+      g.style.cssText = css + ';padding:9px 12px;background:transparent;color:inherit;font-size:18px';
+      box.appendChild(withMenu(g, siteList));
+      el.appendChild(box);
     }
     draw(Deluxe.user());
     Deluxe.onChange(draw);

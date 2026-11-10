@@ -121,3 +121,5 @@ dialog h2 { margin: 0 0 6px; color: var(--text); font-size: 18px; }
   .auth { padding: 22px 18px; margin-top: 8px; }
   .row { flex-wrap: wrap; }
 }
+
+.btn.guest { margin-top: 14px; background: transparent; }

@@ -6,13 +6,14 @@
 // still sign in) and only that hash is sent.
 
 const SESSION_KEY = 'deluxe.main.session';
+const API = String(window.DELUXE_MAIN_API || '').replace(/\/+$/, '');
 const ITERATIONS = 120000;
 const $ = (selector) => document.querySelector(selector);
 
 let session = loadSession();
 let creating = false;
 const params = new URLSearchParams(location.search);
-const connecting = location.pathname.replace(/\/+$/, '') === '/connect' && params.get('return');
+const connecting = /\/connect$/.test(location.pathname.replace(/\/+$/, '')) && params.get('return');
 let connectInfo = null;
 
 /* ---------------- helpers ---------------- */
@@ -43,7 +44,7 @@ async function api(path, { method = 'GET', body } = {}) {
   if (body !== undefined) headers['Content-Type'] = 'application/json';
   let response;
   try {
-    response = await fetch(path, { method, headers, body: body === undefined ? undefined : JSON.stringify(body), cache: 'no-store' });
+    response = await fetch(API + path, { method, headers, body: body === undefined ? undefined : JSON.stringify(body), cache: 'no-store' });
   } catch (error) {
     throw new Error('Deluxe Main could not be reached. Check your connection.');
   }
@@ -250,13 +251,18 @@ $('#connect-other').onclick = async () => {
   await signOut();
   route();
 };
-$('#connect-cancel').onclick = () => {
+// Back to the website without an account: it keeps what you do in that browser.
+function continueAsGuest() {
   try {
-    location.href = new URL(params.get('return')).toString();
+    const back = new URL(params.get('return'));
+    back.hash = 'deluxe_guest=1';
+    location.href = back.toString();
   } catch (error) {
-    location.href = '/';
+    location.href = './';
   }
-};
+}
+$('#connect-cancel').onclick = continueAsGuest;
+$('#auth-guest').onclick = continueAsGuest;
 
 /* ---------------- home ---------------- */
 
@@ -272,6 +278,7 @@ async function drawHome() {
     return;
   }
   session.user = account.user;
+  session.exp = Date.now() + 180 * 24 * 60 * 60 * 1000;
   saveSession(session);
   $('#home-title').textContent = `Hello, ${account.user.name}`;
   $('#acct-name').textContent = account.user.name;
@@ -407,6 +414,7 @@ $('#sign-out').onclick = async () => {
 async function route() {
   if (!session) {
     $('#auth-for').hidden = !connecting;
+    $('#auth-guest').hidden = !connecting;
     if (connecting) {
       let site = 'a Deluxe website';
       try {

@@ -2,6 +2,17 @@
 
 The Deluxe account, and the one server every Deluxe website runs on for accounts and data.
 
+**Where it runs:** inside the one Deluxe Cloudflare Worker (`deluxe-drive`), which also keeps Deluxe
+Drive's files. The account pages are at **https://deluxe-drive.deluxelordd.workers.dev/main/** and the
+server at `/main/api/`. That Worker's repository (deluxe-drive) holds a copy of this repository's
+`worker/core.js`, `worker/apps.js` and `public/` (copied with its `tools/sync-main.sh`); this repository
+is where they are changed. The pages can also be put on Vercel: import this repository (`vercel.json`
+publishes `public/`); they talk to the Worker either way.
+
+- **Guests:** every Deluxe website can be used without an account ("Continue as guest"); what a guest
+  does stays in that browser and moves into the account when they sign in.
+- **Saved sign-in:** keys last 180 days and every visit renews them.
+
 - **Sign in / create account** happens only here. No other Deluxe website makes accounts.
 - **Every Deluxe website signs in with Deluxe Main**: Deluxe Drive, Deluxe Docs, Deluxe Mail, Deluxe
   Convert, Deluxe Translate and YouTube Guider AI. Tapping *Sign in with Deluxe Main* on any of them
@@ -43,7 +54,7 @@ their id, so their files stay where they are.
 ## For a website: `deluxe.js`
 
 ```html
-<script src="https://deluxe-main.deluxelordd.workers.dev/deluxe.js" data-app="translate"></script>
+<script src="https://deluxe-drive.deluxelordd.workers.dev/main/deluxe.js" data-app="translate"></script>
 <div id="account"></div>
 <script>
   Deluxe.button(document.getElementById('account'));   // "Sign in with Deluxe Main" / account menu
@@ -73,16 +84,14 @@ tests/main.test.mjs                      node tests/main.test.mjs
 tests/dev-server.mjs                     a local copy with an in-memory database
 ```
 
-## Deploy (Cloudflare Workers)
+## Deploy
 
-1. Workers & Pages, Create, import this repository (or run `npx wrangler deploy`). It is published as
-   `deluxe-main`, at `https://deluxe-main.deluxelordd.workers.dev`. Nothing else has to be created:
-   everything is kept in the Worker's own Durable Object database, which works on a free account.
-2. Deploy Deluxe Drive after it (its `MAIN_URL` points here; this Worker's `DRIVE_URL` points there).
-3. For Deluxe Mail: add its address to `APP_ORIGINS` in `wrangler.jsonc`, and set the secret
-   `APP_KEY_MAIL` (`npx wrangler secret put APP_KEY_MAIL`); give the Mail site the same value as
-   `MAIN_APP_KEY`.
-4. Optional, once Main and Drive are on the same account: uncomment the `DRIVE` service binding.
+The live server is the `deluxe-drive` Worker: after changing this repository, run
+`sh tools/sync-main.sh ../Deluxe-Main` in deluxe-drive and push it; Cloudflare deploys it. For Deluxe
+Mail, add its address to `APP_ORIGINS` and set the secret `APP_KEY_MAIL` on that Worker.
+
+This repository's own `wrangler.jsonc` can still publish Deluxe Main as a separate Worker
+(`deluxe-main`) if you ever want it on its own.
 
 If a website moves to a new address, add it to `worker/apps.js` (or `APP_ORIGINS`), or its sign-in
 will be refused.

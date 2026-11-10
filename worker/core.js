@@ -17,8 +17,10 @@ const ID_PATTERN = /^[A-Za-z0-9_-]{1,120}$/;
 const HEX_PATTERN = /^[0-9a-fA-F]{16,128}$/;
 const DATA_KEY = /^[A-Za-z0-9_.:@/-]{1,200}$/;
 const NAME_PATTERN = /^[A-Za-z0-9][A-Za-z0-9 ._-]{1,22}[A-Za-z0-9]$/;
-const MAIN_SESSION_SECONDS = 30 * 24 * 60 * 60;
-const APP_SESSION_SECONDS = 30 * 24 * 60 * 60;
+// Sign-ins are saved: a key lasts 180 days and every use pushes that back,
+// so someone who keeps using a site stays signed in.
+const MAIN_SESSION_SECONDS = 180 * 24 * 60 * 60;
+const APP_SESSION_SECONDS = 180 * 24 * 60 * 60;
 const CODE_SECONDS = 60;
 const MAX_JSON_BYTES = 2 * 1024 * 1024;
 const MAX_VALUE_BYTES = 1024 * 1024;
@@ -347,7 +349,10 @@ export class MainCore {
       this.run(`DELETE FROM sessions WHERE token_hash = ?`, hash);
       return null;
     }
-    if (now - (row.last_seen || 0) > 60 * 60 * 1000) this.run(`UPDATE sessions SET last_seen = ? WHERE token_hash = ?`, now, hash);
+    if (now - (row.last_seen || 0) > 60 * 60 * 1000) {
+      const ttl = row.app === 'main' ? MAIN_SESSION_SECONDS : APP_SESSION_SECONDS;
+      this.run(`UPDATE sessions SET last_seen = ?, expires_at = ? WHERE token_hash = ?`, now, now + ttl * 1000, hash);
+    }
     const account = this.accountById(row.account_id);
     if (!account) return null;
     return { hash, account, app: row.app };
@@ -590,6 +595,7 @@ export class MainCore {
       return json(200, {
         user: publicUser(who.account),
         app: who.app,
+        expiresIn: who.app === 'main' ? MAIN_SESSION_SECONDS : APP_SESSION_SECONDS,
         reads: who.app === 'main' ? Object.keys(APPS) : [who.app, ...(APPS[who.app] ? APPS[who.app].reads : [])],
       });
     });
