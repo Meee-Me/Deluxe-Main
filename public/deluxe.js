@@ -31,12 +31,11 @@
     ['Deluxe Main', MAIN + '/', 'Your Deluxe account'],
     ['Deluxe Drive', 'https://deluxe-drive.deluxelordd.workers.dev', 'Your files'],
     ['Deluxe Docs', 'https://deluxe-docs-iota.vercel.app', 'Open documents'],
-    ['Deluxe Mail', '', 'Your @deluxemail.com inbox'],
+    ['Deluxe Mail', 'https://deluxe-mail.vercel.app', 'Your @deluxemail.com inbox'],
     ['Deluxe Convert', 'https://deluxe-convert-cloud.deluxelordd.workers.dev', 'Convert files'],
     ['Deluxe Translate', 'https://deluxe-translate-8m27.netlify.app', 'Text and photos'],
     ['YouTube Guider AI', 'https://youtube-guide-ai.netlify.app', 'Channel stats']
   ];
-  if (window.DELUXE_MAIL_URL) SITES[3][1] = window.DELUXE_MAIL_URL;
   var APP = (script && script.getAttribute('data-app')) || '';
   var KEY = 'deluxe.session.v1';
   var listeners = [];
