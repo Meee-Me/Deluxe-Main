@@ -225,7 +225,24 @@ r = await call('POST', '/api/auth/device', { body: { code: ' ' + devCode.replace
 assert.equal(r.status, 200); assert.equal(r.data.user.id, userId); assert.ok(r.data.token.startsWith('dm_'));
 r = await call('POST', '/api/auth/device', { body: { code: devCode } });
 assert.equal(r.status, 400, 'works once');
-ok('account settings and 60-second device codes');
+// on a website: a Main code signs the website in (app from Origin)
+r = await call('POST', '/api/account/device-code', { token: mainToken });
+r = await call('POST', '/api/connect/device', { body: { code: r.data.code }, headers: { Origin: 'https://deluxe-docs-iota.vercel.app' } });
+assert.equal(r.status, 200); assert.equal(r.data.app, 'docs');
+const docsByCode = r.data.token;
+// a website can make a code too, but it only signs websites in
+r = await call('POST', '/api/account/device-code', { token: docsByCode });
+assert.equal(r.status, 201);
+const siteCode = r.data.code;
+r = await call('POST', '/api/auth/device', { body: { code: siteCode } });
+assert.equal(r.status, 400); assert.equal(r.data.code, 'website-code');
+r = await call('POST', '/api/account/device-code', { token: docsByCode });
+r = await call('POST', '/api/connect/device', { body: { code: r.data.code }, headers: { Origin: 'https://evil.example' } });
+assert.equal(r.status, 400, 'unknown websites cannot use codes');
+r = await call('POST', '/api/account/device-code', { token: docsByCode });
+r = await call('POST', '/api/connect/device', { body: { code: r.data.code }, headers: { Origin: 'https://deluxe-convert.vercel.app' } });
+assert.equal(r.status, 200); assert.equal(r.data.app, 'convert');
+ok('account settings and 60-second device codes (Main and websites)');
 
 /* delete account empties Deluxe Drive too */
 r = await call('POST', '/api/account/delete', { token: mainToken, body: { hash } });
