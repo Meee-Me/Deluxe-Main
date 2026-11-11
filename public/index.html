@@ -67,6 +67,15 @@
           <button class="btn primary wide" id="auth-submit" type="submit">Sign in</button>
         </form>
         <p class="switch"><span id="auth-switch-text">New here?</span> <button class="link" id="auth-switch" type="button">Create a Deluxe account</button></p>
+        <div class="code-box">
+          <button class="link code-toggle" id="code-toggle" type="button" aria-expanded="false" aria-controls="code-form">Have a code from another device?</button>
+          <form id="code-form" class="code-form" hidden novalidate>
+            <p class="muted">On a device where you are signed in, open Deluxe Main and tap <b>Sign in on another device</b>. Type the code here within 60 seconds.</p>
+            <input id="code-input" class="code-input" inputmode="text" autocomplete="one-time-code" autocapitalize="characters" spellcheck="false" maxlength="20" placeholder="ABCD-EFGH-JKLM" aria-label="Code from your other device">
+            <p class="error" id="code-error" role="alert" hidden></p>
+            <button class="btn primary wide" id="code-submit" type="submit">Sign in with code</button>
+          </form>
+        </div>
         <div class="or" id="auth-guest-or" hidden><span>or</span></div>
         <button class="btn ghost wide" id="auth-guest" type="button" hidden>Continue as guest</button>
       </div>
@@ -111,6 +120,7 @@
             <div class="row"><div><b>Deluxe Mail address</b><p class="muted" id="acct-handle"></p></div></div>
             <div class="row"><div><b>Password</b><p class="muted">Changing it signs you out everywhere else.</p></div><button class="btn small" id="acct-password" type="button">Change</button></div>
             <div class="row"><div><b>Saved data</b><p class="muted" id="acct-usage"></p></div></div>
+            <div class="row"><div><b>Another device</b><p class="muted">Sign in on a phone or computer with a 60-second code, no password.</p></div><button class="btn small primary" id="device-code" type="button">Get a code</button></div>
           </div>
         </div>
         <div>
@@ -138,6 +148,18 @@
         <button class="btn primary" value="ok" id="dialog-ok">OK</button>
       </div>
     </form>
+  </dialog>
+
+  <dialog id="code-dialog" class="code-dialog">
+    <h2>Sign in on another device</h2>
+    <p class="muted">On the other device, open any Deluxe website, tap <b>Sign in with Deluxe Main</b>, then <b>Have a code from another device?</b> and type:</p>
+    <button class="code-show" id="code-show" type="button" aria-label="Copy the code">····-····-····</button>
+    <div class="code-timer"><span id="code-bar"></span></div>
+    <p class="muted center-text" id="code-note" aria-live="polite"></p>
+    <div class="actions">
+      <button class="btn ghost" id="code-new" type="button">New code</button>
+      <button class="btn primary" id="code-close" type="button">Done</button>
+    </div>
   </dialog>
 
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>

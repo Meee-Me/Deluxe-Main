@@ -475,6 +475,92 @@ $('#sign-out').onclick = async () => {
   route();
 };
 
+/* ---------------- 60-second codes for another device ---------------- */
+
+// On the new device: type the code from a signed-in device.
+$('#code-toggle').onclick = () => {
+  const form = $('#code-form');
+  form.hidden = !form.hidden;
+  $('#code-toggle').setAttribute('aria-expanded', String(!form.hidden));
+  if (!form.hidden) $('#code-input').focus();
+};
+
+$('#code-form').onsubmit = async (event) => {
+  event.preventDefault();
+  const error = $('#code-error');
+  setError(error, '');
+  const code = $('#code-input').value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  if (code.length !== 12) return setError(error, 'The code has 12 letters and numbers, like ABCD-EFGH-JKLM.');
+  const button = $('#code-submit');
+  button.disabled = true;
+  try {
+    const data = await api('/api/auth/device', { method: 'POST', body: { code } });
+    saveSession({ token: data.token, user: data.user, exp: Date.now() + data.expiresIn * 1000 });
+    $('#code-input').value = '';
+    toast(`Signed in as ${data.user.name}`);
+    await route();
+  } catch (failure) {
+    setError(error, failure.message);
+  } finally {
+    button.disabled = false;
+  }
+};
+
+// A whole code pasted in signs in straight away.
+$('#code-input').addEventListener('input', () => {
+  if ($('#code-input').value.toUpperCase().replace(/[^A-Z0-9]/g, '').length === 12) $('#code-form').requestSubmit();
+});
+
+// On the signed-in device: show a code, with a 60-second countdown.
+let codeTimer = null;
+let codeLeft = 0;
+async function makeDeviceCode() {
+  clearInterval(codeTimer);
+  $('#code-show').textContent = '····-····-····';
+  $('#code-note').textContent = 'Making a code…';
+  try {
+    const { code, expiresIn } = await api('/api/account/device-code', { method: 'POST' });
+    $('#code-show').textContent = code;
+    codeLeft = expiresIn;
+    const bar = $('#code-bar');
+    bar.style.transition = 'none';
+    bar.style.transform = 'scaleX(1)';
+    void bar.offsetWidth;
+    bar.style.transition = `transform ${expiresIn}s linear`;
+    bar.style.transform = 'scaleX(0)';
+    const tick = () => {
+      $('#code-note').textContent = codeLeft > 0 ? `Works once, for ${codeLeft} more second${codeLeft === 1 ? '' : 's'}.` : 'This code ran out. Tap New code.';
+      if (codeLeft <= 0) {
+        clearInterval(codeTimer);
+        $('#code-show').textContent = '····-····-····';
+      }
+      codeLeft -= 1;
+    };
+    tick();
+    codeTimer = setInterval(tick, 1000);
+  } catch (failure) {
+    $('#code-note').textContent = failure.message;
+  }
+}
+
+$('#device-code').onclick = () => {
+  $('#code-dialog').showModal();
+  makeDeviceCode();
+};
+$('#code-new').onclick = makeDeviceCode;
+$('#code-close').onclick = () => $('#code-dialog').close();
+$('#code-dialog').addEventListener('close', () => clearInterval(codeTimer));
+$('#code-show').onclick = async () => {
+  const code = $('#code-show').textContent;
+  if (!/[A-Z0-9]{4}-/.test(code)) return;
+  try {
+    await navigator.clipboard.writeText(code);
+    toast('Code copied');
+  } catch (error) {
+    /* copying is not allowed here; the code is on screen */
+  }
+};
+
 /* ---------------- which screen ---------------- */
 
 async function route() {

@@ -33,8 +33,8 @@
     ['Deluxe Docs', 'https://deluxe-docs-iota.vercel.app', 'Open documents'],
     ['Deluxe Mail', 'https://deluxe-mail.vercel.app', 'Your @deluxemail.com inbox'],
     ['Deluxe Convert', 'https://deluxe-convert.vercel.app', 'Convert files'],
-    ['Deluxe Translate', 'https://deluxe-translate-8m27.netlify.app', 'Text and photos'],
-    ['YouTube Guider AI', 'https://youtube-guide-ai.netlify.app', 'Channel stats']
+    ['Deluxe Translate', 'https://deluxe-translate-app.vercel.app', 'Text and photos'],
+    ['YouTube Guider AI', 'https://deluxe-youtube-guider.vercel.app', 'Channel stats']
   ];
   var APP = (script && script.getAttribute('data-app')) || '';
   var KEY = 'deluxe.session.v1';
