@@ -79,8 +79,18 @@ async function hashFor(name, password) {
   return hashPassword(password, salt);
 }
 
+// Each screen glides in when it appears.
 function show(id) {
-  for (const section of ['loading', 'auth', 'connect', 'home']) $(`#${section}`).hidden = section !== id;
+  for (const section of ['loading', 'auth', 'connect', 'home']) {
+    const el = $(`#${section}`);
+    const showing = section === id;
+    if (showing && el.hidden) {
+      el.classList.remove('enter');
+      void el.offsetWidth;
+      el.classList.add('enter');
+    }
+    el.hidden = !showing;
+  }
   const user = session && session.user;
   $('#top-user').hidden = !user || id === 'home';
   if (user) $('#top-user').textContent = `Signed in as ${user.name}`;
@@ -152,7 +162,10 @@ function ask({ title, text = '', fields = [], ok = 'OK', danger = false, submit 
 /* ---------------- sign in / create account ---------------- */
 
 function drawAuth() {
-  $('#auth-title').textContent = creating ? 'Create your Deluxe account' : 'Sign in';
+  $('.seg').dataset.mode = creating ? 'create' : 'signin';
+  $('#seg-signin').setAttribute('aria-selected', String(!creating));
+  $('#seg-create').setAttribute('aria-selected', String(creating));
+  $('#auth-title').textContent = creating ? 'Create your Deluxe account' : 'Welcome back';
   $('#auth-submit').textContent = creating ? 'Create account' : 'Sign in';
   $('#auth-confirm-row').hidden = !creating;
   $('#auth-hint').hidden = !creating;
@@ -162,6 +175,42 @@ function drawAuth() {
   $('#auth-lead').textContent = creating
     ? 'Deluxe accounts are made only here. Use it to sign in to every Deluxe website.'
     : 'One Deluxe account for every Deluxe website. Older Deluxe Drive accounts sign in here too.';
+}
+
+$('#seg-signin').onclick = () => { if (creating) $('#auth-switch').click(); };
+$('#seg-create').onclick = () => { if (!creating) $('#auth-switch').click(); };
+
+// Show / hide a password.
+for (const peek of document.querySelectorAll('.peek')) {
+  peek.onclick = () => {
+    const input = document.getElementById(peek.dataset.for);
+    const showing = input.type === 'text';
+    input.type = showing ? 'password' : 'text';
+    peek.textContent = showing ? 'Show' : 'Hide';
+    peek.setAttribute('aria-label', showing ? 'Show password' : 'Hide password');
+    input.focus();
+  };
+}
+
+// A short message at the bottom of the screen.
+let toastTimer = null;
+function toast(text) {
+  const el = $('#toast');
+  el.textContent = text;
+  el.hidden = false;
+  el.style.animation = 'none';
+  void el.offsetWidth;
+  el.style.animation = '';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.hidden = true; }, 2800);
+}
+
+// The icon tile for a Deluxe website.
+function tile(appId, name, big = false) {
+  const el = document.createElement('span');
+  el.className = `app-tile${big ? ' big' : ''} ic-${appId}`;
+  el.textContent = String(name || '?').replace(/^Deluxe\s+/, '').slice(0, 1);
+  return el;
 }
 
 $('#auth-switch').onclick = () => {
@@ -226,7 +275,7 @@ async function drawConnect() {
   }
   // A website this account already said yes to continues straight away.
   if (connectInfo.approved) return approve();
-  $('#connect-dot').textContent = connectInfo.name.replace(/^Deluxe\s+/, '').slice(0, 1);
+  $('#connect-dot').replaceWith(Object.assign(tile(connectInfo.app, connectInfo.name, true), { id: 'connect-dot' }));
   $('#connect-title').textContent = `Continue to ${connectInfo.name}`;
   $('#connect-lead').textContent = `${connectInfo.name} (${connectInfo.origin.replace(/^https?:\/\//, '')}) will know your name and keep what it saves for you in your Deluxe account. Signed in as ${session.user.name}.`;
   $('#connect-go').hidden = false;
@@ -281,6 +330,9 @@ async function drawHome() {
   session.exp = Date.now() + 180 * 24 * 60 * 60 * 1000;
   saveSession(session);
   $('#home-title').textContent = `Hello, ${account.user.name}`;
+  $('#home-avatar').textContent = (account.user.name || 'D').trim().charAt(0).toUpperCase();
+  $('#home-mail').textContent = `${account.user.handle}@deluxemail.com`;
+  $('#home-mail').hidden = false;
   $('#acct-name').textContent = account.user.name;
   $('#acct-handle').textContent = `${account.user.handle}@deluxemail.com`;
   const total = account.usage.reduce((sum, row) => sum + Number(row.bytes || 0), 0);
@@ -296,9 +348,8 @@ async function drawHome() {
     if (app.url) link.href = app.url;
     link.target = '_blank';
     link.rel = 'noopener';
-    const dot = document.createElement('span');
-    dot.className = 'app-dot';
-    dot.textContent = app.name.replace(/^Deluxe\s+/, '').slice(0, 1);
+    link.style.animationDelay = `${apps.children.length * 60}ms`;
+    const dot = tile(app.id, app.name);
     const text = document.createElement('div');
     const title = document.createElement('b');
     title.textContent = app.name;
@@ -306,7 +357,11 @@ async function drawHome() {
     about.className = 'muted';
     about.textContent = app.url ? app.about : 'Address not set yet';
     text.append(title, about);
-    link.append(dot, text);
+    const go = document.createElement('span');
+    go.className = 'go';
+    go.setAttribute('aria-hidden', 'true');
+    go.textContent = '→';
+    link.append(dot, text, go);
     apps.append(link);
   }
 
@@ -314,14 +369,15 @@ async function drawHome() {
   list.innerHTML = '';
   if (!account.signedIn.length) {
     const empty = document.createElement('p');
-    empty.className = 'muted';
-    empty.style.padding = '14px 0';
+    empty.className = 'muted empty';
     empty.textContent = 'None yet. Open a Deluxe website and tap Sign in with Deluxe Main.';
     list.append(empty);
   }
   for (const entry of account.signedIn) {
     const row = document.createElement('div');
     row.className = 'row';
+    const site = document.createElement('div');
+    site.className = 'site';
     const text = document.createElement('div');
     const title = document.createElement('b');
     title.textContent = entry.name;
@@ -329,21 +385,23 @@ async function drawHome() {
     seen.className = 'muted';
     seen.textContent = entry.lastSeen ? `Last used ${new Date(entry.lastSeen).toLocaleString()}` : '';
     text.append(title, seen);
+    site.append(tile(entry.app, entry.name), text);
     const button = document.createElement('button');
-    button.className = 'btn';
+    button.className = 'btn small ghost';
     button.type = 'button';
     button.textContent = 'Sign out';
     button.onclick = async () => {
       button.disabled = true;
       try {
         await api(`/api/account/sessions/${encodeURIComponent(entry.app)}`, { method: 'DELETE' });
+        toast(`Signed out of ${entry.name}`);
         drawHome();
       } catch (failure) {
         button.disabled = false;
-        alert(failure.message);
+        toast(failure.message);
       }
     };
-    row.append(text, button);
+    row.append(site, button);
     list.append(row);
   }
   show('home');
@@ -358,7 +416,11 @@ $('#acct-rename').onclick = () =>
     submit: async ([name]) => {
       await api('/api/account', { method: 'PATCH', body: { name } });
     },
-  }).then((done) => done && drawHome());
+  }).then((done) => {
+    if (!done) return;
+    toast('Name saved');
+    drawHome();
+  });
 
 $('#acct-password').onclick = () =>
   ask({
@@ -376,7 +438,11 @@ $('#acct-password').onclick = () =>
       const salt = makeSalt();
       await api('/api/account/password', { method: 'POST', body: { currentHash, salt, hash: await hashPassword(next, salt) } });
     },
-  }).then((done) => done && drawHome());
+  }).then((done) => {
+    if (!done) return;
+    toast('Password changed');
+    drawHome();
+  });
 
 $('#acct-delete').onclick = () =>
   ask({
@@ -415,6 +481,7 @@ async function route() {
   if (!session) {
     $('#auth-for').hidden = !connecting;
     $('#auth-guest').hidden = !connecting;
+    $('#auth-guest-or').hidden = !connecting;
     if (connecting) {
       let site = 'a Deluxe website';
       try {

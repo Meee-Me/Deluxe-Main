@@ -5,75 +5,122 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Deluxe Main</title>
   <meta name="description" content="Your Deluxe account: one sign-in for Deluxe Drive, Docs, Mail, Convert, Translate and YouTube Guider AI.">
-  <meta name="color-scheme" content="light dark">
+  <meta name="color-scheme" content="dark light">
+  <meta name="theme-color" content="#0d0b1a">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <!-- Soft moving light behind everything -->
+  <div class="aurora" aria-hidden="true"><span></span><span></span><span></span></div>
+
   <header class="top">
-    <a class="brand" href="./"><img src="icon.svg" alt="" width="28" height="28"> Deluxe Main</a>
+    <a class="brand" href="./"><img src="icon.svg" alt="" width="32" height="32"><span>Deluxe <b>Main</b></span></a>
     <div id="top-user" class="top-user" hidden></div>
   </header>
 
   <main id="view">
-    <section class="card center" id="loading"><p class="muted">Loading…</p></section>
+    <section class="loading" id="loading" aria-live="polite"><span class="spinner" aria-hidden="true"></span><span class="sr">Loading</span></section>
 
     <!-- Sign in / create account -->
-    <section class="card auth" id="auth" hidden>
-      <p class="for" id="auth-for" hidden></p>
-      <h1 id="auth-title">Sign in</h1>
-      <p class="muted" id="auth-lead">One Deluxe account for every Deluxe website.</p>
-      <form id="auth-form" autocomplete="on" novalidate>
-        <label>Name
-          <input id="auth-name" name="username" autocomplete="username" required maxlength="24" autocapitalize="off" spellcheck="false">
-        </label>
-        <label>Password
-          <input id="auth-password" name="password" type="password" autocomplete="current-password" required minlength="8">
-        </label>
-        <label id="auth-confirm-row" hidden>Type the password again
-          <input id="auth-confirm" type="password" autocomplete="new-password">
-        </label>
-        <p class="hint" id="auth-hint" hidden>3 to 24 letters, numbers, spaces, dots, dashes or underscores. Your Deluxe Mail address is made from it.</p>
-        <p class="error" id="auth-error" role="alert" hidden></p>
-        <button class="btn primary wide" id="auth-submit" type="submit">Sign in</button>
-      </form>
-      <p class="switch"><span id="auth-switch-text">New here?</span> <button class="link" id="auth-switch" type="button">Create a Deluxe account</button></p>
-      <button class="btn wide guest" id="auth-guest" type="button" hidden>Continue as guest</button>
+    <section class="auth-wrap" id="auth" hidden>
+      <aside class="pitch" aria-hidden="true">
+        <p class="eyebrow">One account</p>
+        <h2>Every Deluxe website.<br><span class="grad">One sign-in.</span></h2>
+        <p class="pitch-lead">Drive, Docs, Mail, Convert, Translate and YouTube Guider AI — signed in everywhere, with your things saved in one place.</p>
+        <ul class="pitch-apps">
+          <li class="ic ic-drive"></li><li class="ic ic-docs"></li><li class="ic ic-mail"></li>
+          <li class="ic ic-convert"></li><li class="ic ic-translate"></li><li class="ic ic-youtube"></li>
+        </ul>
+      </aside>
+
+      <div class="card auth glass">
+        <p class="for" id="auth-for" hidden></p>
+        <div class="seg" role="tablist" aria-label="Sign in or create an account">
+          <button type="button" role="tab" id="seg-signin" aria-selected="true">Sign in</button>
+          <button type="button" role="tab" id="seg-create" aria-selected="false">Create account</button>
+          <span class="seg-thumb" aria-hidden="true"></span>
+        </div>
+        <h1 id="auth-title">Sign in</h1>
+        <p class="muted" id="auth-lead">One Deluxe account for every Deluxe website.</p>
+        <form id="auth-form" autocomplete="on" novalidate>
+          <label class="field"><span>Name</span>
+            <input id="auth-name" name="username" autocomplete="username" required maxlength="24" autocapitalize="off" spellcheck="false" placeholder="Your Deluxe name">
+          </label>
+          <label class="field"><span>Password</span>
+            <span class="pw">
+              <input id="auth-password" name="password" type="password" autocomplete="current-password" required minlength="8" placeholder="At least 8 characters">
+              <button type="button" class="peek" data-for="auth-password" aria-label="Show password">Show</button>
+            </span>
+          </label>
+          <label class="field" id="auth-confirm-row" hidden><span>Type the password again</span>
+            <span class="pw">
+              <input id="auth-confirm" type="password" autocomplete="new-password" placeholder="Same password">
+              <button type="button" class="peek" data-for="auth-confirm" aria-label="Show password">Show</button>
+            </span>
+          </label>
+          <p class="hint" id="auth-hint" hidden>3 to 24 letters, numbers, spaces, dots, dashes or underscores. Your Deluxe Mail address is made from it.</p>
+          <p class="error" id="auth-error" role="alert" hidden></p>
+          <button class="btn primary wide" id="auth-submit" type="submit">Sign in</button>
+        </form>
+        <p class="switch"><span id="auth-switch-text">New here?</span> <button class="link" id="auth-switch" type="button">Create a Deluxe account</button></p>
+        <div class="or" id="auth-guest-or" hidden><span>or</span></div>
+        <button class="btn ghost wide" id="auth-guest" type="button" hidden>Continue as guest</button>
+      </div>
     </section>
 
     <!-- Continue to a website -->
-    <section class="card auth" id="connect" hidden>
-      <div class="connect-logos"><img src="icon.svg" alt="" width="44" height="44"><span>→</span><span class="app-dot" id="connect-dot">?</span></div>
+    <section class="card auth glass narrow" id="connect" hidden>
+      <div class="connect-logos">
+        <img src="icon.svg" alt="" width="56" height="56">
+        <span class="link-line" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="app-tile big" id="connect-dot">?</span>
+      </div>
       <h1 id="connect-title">Continue to …</h1>
-      <p class="muted" id="connect-lead"></p>
+      <p class="muted center-text" id="connect-lead"></p>
       <p class="error" id="connect-error" role="alert" hidden></p>
-      <button class="btn primary wide" id="connect-go" type="button">Continue</button>
-      <button class="btn wide" id="connect-other" type="button">Use another account</button>
-      <button class="link" id="connect-cancel" type="button">Continue as guest</button>
+      <div class="stack">
+        <button class="btn primary wide" id="connect-go" type="button">Continue</button>
+        <button class="btn ghost wide" id="connect-other" type="button">Use another account</button>
+        <button class="link" id="connect-cancel" type="button">Continue as guest</button>
+      </div>
     </section>
 
     <!-- Home -->
-    <section id="home" hidden>
-      <div class="hello">
-        <h1 id="home-title">Hello</h1>
-        <p class="muted" id="home-lead">Your Deluxe account works on every Deluxe website. Open one and tap <b>Sign in with Deluxe Main</b>.</p>
+    <section id="home" class="home" hidden>
+      <div class="hero glass">
+        <span class="avatar" id="home-avatar" aria-hidden="true">D</span>
+        <div class="hero-text">
+          <h1 id="home-title">Hello</h1>
+          <p class="muted" id="home-lead">Your Deluxe account works on every Deluxe website. Open one and tap <b>Sign in with Deluxe Main</b>.</p>
+          <p class="chip" id="home-mail" hidden></p>
+        </div>
       </div>
-      <h2>Deluxe websites</h2>
+
+      <h2 class="section">Deluxe websites</h2>
       <div class="apps" id="apps"></div>
 
-      <h2>Your account</h2>
-      <div class="card list">
-        <div class="row"><div><b>Name</b><p class="muted" id="acct-name"></p></div><button class="btn" id="acct-rename" type="button">Change</button></div>
-        <div class="row"><div><b>Deluxe Mail address</b><p class="muted" id="acct-handle"></p></div></div>
-        <div class="row"><div><b>Password</b><p class="muted">Changing it signs you out everywhere else.</p></div><button class="btn" id="acct-password" type="button">Change</button></div>
-        <div class="row"><div><b>Saved data</b><p class="muted" id="acct-usage"></p></div></div>
+      <div class="grid2">
+        <div>
+          <h2 class="section">Your account</h2>
+          <div class="card list glass">
+            <div class="row"><div><b>Name</b><p class="muted" id="acct-name"></p></div><button class="btn small" id="acct-rename" type="button">Change</button></div>
+            <div class="row"><div><b>Deluxe Mail address</b><p class="muted" id="acct-handle"></p></div></div>
+            <div class="row"><div><b>Password</b><p class="muted">Changing it signs you out everywhere else.</p></div><button class="btn small" id="acct-password" type="button">Change</button></div>
+            <div class="row"><div><b>Saved data</b><p class="muted" id="acct-usage"></p></div></div>
+          </div>
+        </div>
+        <div>
+          <h2 class="section">Signed in on</h2>
+          <div class="card list glass" id="sessions"></div>
+        </div>
       </div>
 
-      <h2>Websites you are signed in to</h2>
-      <div class="card list" id="sessions"></div>
-
       <div class="actions">
-        <button class="btn" id="sign-out" type="button">Sign out</button>
+        <button class="btn ghost" id="sign-out" type="button">Sign out</button>
         <button class="btn danger" id="acct-delete" type="button">Delete account</button>
       </div>
       <p class="muted small">Your files are kept in Deluxe Drive. Everything else every Deluxe website saves for you is kept here, in Deluxe Main.</p>
@@ -87,11 +134,13 @@
       <div id="dialog-fields"></div>
       <p class="error" id="dialog-error" role="alert" hidden></p>
       <div class="actions">
-        <button class="btn" value="cancel" type="button" id="dialog-cancel">Cancel</button>
+        <button class="btn ghost" value="cancel" type="button" id="dialog-cancel">Cancel</button>
         <button class="btn primary" value="ok" id="dialog-ok">OK</button>
       </div>
     </form>
   </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
   <footer class="foot">Directed by Shivad Sujith · AI support by Claude</footer>
   <script src="config.js"></script>
