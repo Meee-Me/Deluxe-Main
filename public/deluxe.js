@@ -32,7 +32,7 @@
     ['Deluxe Drive', 'https://deluxe-drive-xi.vercel.app', 'Your files'],
     ['Deluxe Docs', 'https://deluxe-docs-iota.vercel.app', 'Open documents'],
     ['Deluxe Mail', 'https://deluxe-mail.vercel.app', 'Your @deluxemail.com inbox'],
-    ['Deluxe Convert', 'https://deluxe-convert-cloud.deluxelordd.workers.dev', 'Convert files'],
+    ['Deluxe Convert', 'https://deluxe-convert.vercel.app', 'Convert files'],
     ['Deluxe Translate', 'https://deluxe-translate-8m27.netlify.app', 'Text and photos'],
     ['YouTube Guider AI', 'https://youtube-guide-ai.netlify.app', 'Channel stats']
   ];
