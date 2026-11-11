@@ -29,7 +29,7 @@
   // Every Deluxe website, for the menu.
   var SITES = [
     ['Deluxe Main', MAIN + '/', 'Your Deluxe account'],
-    ['Deluxe Drive', 'https://deluxe-drive.deluxelordd.workers.dev', 'Your files'],
+    ['Deluxe Drive', 'https://deluxe-drive-xi.vercel.app', 'Your files'],
     ['Deluxe Docs', 'https://deluxe-docs-iota.vercel.app', 'Open documents'],
     ['Deluxe Mail', 'https://deluxe-mail.vercel.app', 'Your @deluxemail.com inbox'],
     ['Deluxe Convert', 'https://deluxe-convert-cloud.deluxelordd.workers.dev', 'Convert files'],
