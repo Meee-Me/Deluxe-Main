@@ -30,7 +30,7 @@
   var SITES = [
     ['Deluxe Main', MAIN + '/', 'Your Deluxe account'],
     ['Deluxe Drive', 'https://deluxe-drive-xi.vercel.app', 'Your files'],
-    ['Deluxe Docs', 'https://deluxe-docs-iota.vercel.app', 'Open documents'],
+    ['Deluxe Docs', 'https://deluxe-docs-qtp5.vercel.app', 'Open documents'],
     ['Deluxe Mail', 'https://deluxe-mail.vercel.app', 'Your @deluxemail.com inbox'],
     ['Deluxe Convert', 'https://deluxe-convert.vercel.app', 'Convert files'],
     ['Deluxe Translate', 'https://deluxe-translate-app.vercel.app', 'Text and photos'],

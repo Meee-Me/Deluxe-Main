@@ -55,6 +55,7 @@ assert.equal(appForOrigin('https://deluxe-translate-8m27.netlify.app.evil.com'),
 assert.equal(appForOrigin('http://localhost:8000', {}, 'docs'), null);
 assert.equal(appForOrigin('https://deluxe-docs-evil.vercel.app'), null, 'no vercel.app wildcards');
 assert.equal(appForOrigin('https://deluxe-docs-iota.vercel.app'), 'docs');
+assert.equal(appForOrigin('https://deluxe-docs-qtp5.vercel.app'), 'docs');
 assert.equal(appForOrigin('https://deluxe-mail.vercel.app'), 'mail');
 assert.equal(appForOrigin('https://deluxe-convert.vercel.app'), 'convert');
 assert.equal(appForOrigin('https://deluxe-translate-app.vercel.app'), 'translate');
