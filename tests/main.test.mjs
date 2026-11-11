@@ -57,6 +57,7 @@ assert.equal(appForOrigin('https://deluxe-docs-evil.vercel.app'), null, 'no verc
 assert.equal(appForOrigin('https://deluxe-docs-iota.vercel.app'), 'docs');
 assert.equal(appForOrigin('https://deluxe-mail.vercel.app'), 'mail');
 assert.equal(appForOrigin('https://deluxe-convert.vercel.app'), 'convert');
+assert.equal(appForOrigin('https://deluxe-meet.vercel.app'), 'meet');
 assert.equal(appForOrigin('http://localhost:8000', { ALLOW_LOCALHOST: '1' }, 'docs'), 'docs');
 assert.equal(appForOrigin('https://mail.example.netlify.app', env), 'mail');
 assert.equal(handleFor('Shivad Sujith'), 'shivad.sujith');
