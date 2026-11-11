@@ -34,11 +34,15 @@
     ['Deluxe Mail', 'https://deluxe-mail.vercel.app', 'Your @deluxemail.com inbox'],
     ['Deluxe Meet', 'https://deluxe-meet.vercel.app', 'Video calls'],
     ['Deluxe Convert', 'https://deluxe-convert.vercel.app', 'Convert files'],
-    ['Deluxe Translate', 'https://deluxe-translate-8m27.netlify.app', 'Text and photos'],
-    ['YouTube Guider AI', 'https://youtube-guide-ai.netlify.app', 'Channel stats']
+    ['Deluxe Translate', 'https://deluxe-translate-app.vercel.app', 'Text and photos'],
+    ['YouTube Guider AI', 'https://deluxe-youtube-guider.vercel.app', 'Channel stats']
   ];
   var APP = (script && script.getAttribute('data-app')) || '';
-  var KEY = 'deluxe.session.v1';
+  // data-session-key: a site that keeps its own Deluxe key (Deluxe Drive) can
+  // share it. data-passive="1": the site handles coming back from Deluxe Main
+  // itself; this file only offers its menus and the 60-second code window.
+  var KEY = (script && script.getAttribute('data-session-key')) || 'deluxe.session.v1';
+  var PASSIVE = !!(script && script.getAttribute('data-passive') === '1');
   var listeners = [];
   var session = load();
 
@@ -175,13 +179,34 @@
       save(null);
       if (t) fetch(MAIN + '/api/auth/logout', { method: 'POST', headers: { Authorization: 'Bearer ' + t }, credentials: 'omit' }).catch(function () {});
     },
+    // 60-second codes: make one here for another device, or sign this site in
+    // with one made elsewhere.
+    makeCode: function () {
+      return api('/api/account/device-code', { method: 'POST' });
+    },
+    signInWithCode: function (code) {
+      return fetch(MAIN + '/api/connect/device', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: code, app: APP }),
+        credentials: 'omit',
+      })
+        .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { if (!r.ok) throw new Error(d.error || 'That code did not work.'); return d; }); })
+        .then(function (d) {
+          setGuest(false);
+          save({ token: d.token, user: d.user, app: d.app, exp: Date.now() + (Number(d.expiresIn) || 86400) * 1000, main: MAIN });
+          return d.user;
+        });
+    },
+    codeDialog: function (mode) { codeDialog(mode); },
     onChange: function (fn) { listeners.push(fn); return function () { listeners = listeners.filter(function (x) { return x !== fn; }); }; },
     api: api,
     data: null,
     button: button,
   };
   Deluxe.data = data(function () { return Deluxe.app(); });
-  Deluxe.ready = finishSignIn().then(function (user) {
+  Deluxe.ready = (PASSIVE ? Promise.resolve(session ? session.user : null) : finishSignIn()).then(function (user) {
+    if (PASSIVE) return user;
     // A key Deluxe Main has ended (signed out there, password changed) is dropped.
     if (session) api('/api/auth/me').then(function (d) {
       // Each visit renews the saved sign-in.
@@ -259,6 +284,13 @@
         b.title = Deluxe.isGuest() ? 'You are using this site as a guest' : '';
         b.onclick = function () { Deluxe.signIn(); };
         box.appendChild(b);
+        var c = document.createElement('button');
+        c.type = 'button';
+        c.textContent = 'Use a code';
+        c.title = 'Sign in with a 60-second code from another device';
+        c.style.cssText = css + ';background:transparent;color:inherit';
+        c.onclick = function () { codeDialog('enter'); };
+        box.appendChild(c);
       } else {
         var initial = document.createElement('span');
         initial.textContent = (user.name || '?').slice(0, 1).toUpperCase();
@@ -269,6 +301,7 @@
         box.appendChild(withMenu(b, function (menu) {
           heading(menu, 'Signed in as ' + user.name);
           item(menu, 'Your Deluxe account', 'Name, password, websites', null, MAIN + '/');
+          item(menu, 'Sign in on another device', 'Get a 60-second code', function () { codeDialog('show'); });
           item(menu, 'Sign out', '', function () { Deluxe.signOut(); });
           siteList(menu);
         }));
@@ -285,6 +318,106 @@
     }
     draw(Deluxe.user());
     Deluxe.onChange(draw);
+  }
+
+  // A small window for 60-second codes. 'show' makes a code for another
+  // device; 'enter' signs this site in with a code from another device.
+  function codeDialog(mode) {
+    var old = document.getElementById('deluxe-code-dialog');
+    if (old) old.remove();
+    var shade = document.createElement('div');
+    shade.id = 'deluxe-code-dialog';
+    shade.style.cssText = 'position:fixed;inset:0;z-index:10000;display:grid;place-items:center;padding:16px;background:rgba(8,6,20,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);font:15px/1.5 system-ui,-apple-system,sans-serif';
+    var box = document.createElement('div');
+    box.setAttribute('role', 'dialog');
+    box.setAttribute('aria-modal', 'true');
+    box.style.cssText = 'width:min(420px,100%);background:#17142a;color:#f4f2ff;border:1px solid rgba(255,255,255,.12);border-radius:22px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.5);text-align:left';
+    var title = document.createElement('h2');
+    title.style.cssText = 'margin:0 0 8px;font-size:20px';
+    var text = document.createElement('p');
+    text.style.cssText = 'margin:0 0 16px;color:#a9a3c8;font-size:14px';
+    var big = 'display:block;width:100%;box-sizing:border-box;padding:16px 10px;border-radius:16px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.07);color:#fff;text-align:center;font:800 26px/1 ui-monospace,Menlo,monospace;letter-spacing:.1em';
+    var note = document.createElement('p');
+    note.style.cssText = 'margin:12px 0 0;min-height:1.5em;color:#a9a3c8;font-size:14px;text-align:center';
+    var row = document.createElement('div');
+    row.style.cssText = 'display:flex;gap:10px;justify-content:flex-end;margin-top:18px';
+    function btn(label, primary) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = label;
+      b.style.cssText = 'font:600 15px system-ui,sans-serif;padding:11px 18px;border-radius:12px;cursor:pointer;border:1px solid rgba(255,255,255,.14);' +
+        (primary ? 'background:#6d4aff;color:#fff;border-color:transparent' : 'background:transparent;color:#f4f2ff');
+      return b;
+    }
+    var timer = null;
+    function close() { clearInterval(timer); shade.remove(); document.removeEventListener('keydown', onKey); }
+    function onKey(e) { if (e.key === 'Escape') close(); }
+    document.addEventListener('keydown', onKey);
+    shade.addEventListener('click', function (e) { if (e.target === shade) close(); });
+
+    if (mode === 'show') {
+      title.textContent = 'Sign in on another device';
+      text.textContent = 'On the other device, open any Deluxe website, tap Use a code (or Have a code from another device? on Deluxe Main) and type:';
+      var code = document.createElement('div');
+      code.style.cssText = big;
+      code.textContent = '····-····-····';
+      var again = btn('New code', false);
+      var done = btn('Done', true);
+      done.onclick = close;
+      var make = function () {
+        clearInterval(timer);
+        code.textContent = '····-····-····';
+        note.textContent = 'Making a code…';
+        Deluxe.makeCode().then(function (d) {
+          code.textContent = d.code;
+          var left = Number(d.expiresIn) || 60;
+          var tick = function () {
+            note.textContent = left > 0 ? 'Works once, for ' + left + ' more seconds.' : 'This code ran out. Tap New code.';
+            if (left <= 0) { clearInterval(timer); code.textContent = '····-····-····'; }
+            left -= 1;
+          };
+          tick();
+          timer = setInterval(tick, 1000);
+        }).catch(function (e) { note.textContent = e.message; });
+      };
+      again.onclick = make;
+      row.append(again, done);
+      box.append(title, text, code, note, row);
+      make();
+    } else {
+      title.textContent = 'Sign in with a code';
+      text.textContent = 'On a device where you are signed in, open any Deluxe website (or Deluxe Main) and choose Sign in on another device. Type the code here within 60 seconds.';
+      var input = document.createElement('input');
+      input.style.cssText = big + ';font-size:22px;text-transform:uppercase;outline:none';
+      input.placeholder = 'ABCD-EFGH-JKLM';
+      input.setAttribute('aria-label', 'Code from your other device');
+      input.autocomplete = 'one-time-code';
+      input.spellcheck = false;
+      var cancel = btn('Cancel', false);
+      var go = btn('Sign in', true);
+      cancel.onclick = close;
+      var busy = false;
+      var submit = function () {
+        var value = input.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        if (value.length !== 12) { note.textContent = 'The code has 12 letters and numbers.'; return; }
+        if (busy) return;
+        busy = true;
+        go.disabled = true;
+        note.textContent = 'Signing in…';
+        Deluxe.signInWithCode(value).then(function (user) {
+          close();
+          if (user && user.name) Deluxe._notice && Deluxe._notice('Signed in as ' + user.name);
+        }).catch(function (e) { note.textContent = e.message; }).then(function () { busy = false; go.disabled = false; });
+      };
+      go.onclick = submit;
+      input.addEventListener('keydown', function (e) { if (e.key === 'Enter') submit(); });
+      input.addEventListener('input', function () { if (input.value.toUpperCase().replace(/[^A-Z0-9]/g, '').length === 12) submit(); });
+      row.append(cancel, go);
+      box.append(title, text, input, note, row);
+      setTimeout(function () { input.focus(); }, 30);
+    }
+    shade.appendChild(box);
+    document.body.appendChild(shade);
   }
 
   window.Deluxe = Deluxe;

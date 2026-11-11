@@ -334,6 +334,23 @@ dialog h2 { font-size: 20px; letter-spacing: -0.01em; margin-bottom: 6px; }
 dialog form { margin-top: 0; display: block; }
 dialog .actions { margin-top: 20px; }
 
+/* ---------- 60-second codes ---------- */
+.code-box { margin-top: 14px; text-align: center; }
+.code-toggle { font-size: 14px; }
+.code-form { margin-top: 12px; text-align: left; animation: rise 0.4s var(--ease); }
+.code-form .muted { font-size: 13px; }
+.code-input { text-align: center; font: 700 22px/1.2 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: 0.12em; text-transform: uppercase; }
+.code-dialog h2 { margin-bottom: 8px; }
+.code-show {
+  display: block; width: 100%; margin: 18px 0 12px; padding: 18px 10px; border-radius: 18px; cursor: pointer;
+  font: 800 clamp(24px, 7vw, 32px)/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: 0.1em; color: var(--text);
+  background: var(--surface-strong); border: 1px solid var(--border); transition: transform 0.25s var(--ease), border-color 0.25s;
+}
+.code-show:hover { border-color: var(--accent); transform: scale(1.01); }
+.code-timer { height: 6px; border-radius: 999px; background: var(--border); overflow: hidden; }
+.code-timer span { display: block; height: 100%; width: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--accent-2), var(--accent)); transform-origin: left; }
+#code-note { margin-top: 10px; font-size: 14px; }
+
 /* ---------- toast ---------- */
 .toast {
   position: fixed; left: 50%; bottom: max(24px, env(safe-area-inset-bottom)); z-index: 50;
