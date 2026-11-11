@@ -256,11 +256,11 @@ r = await call('PUT', '/api/data/drive/set:theme', { token: convertToken, body: 
 assert.equal(r.status, 400, 'only file records');
 r = await call('PUT', '/api/data/drive/node:n_conv2', { token: convertToken, body: { value: { ...fileRec, id: 'n_conv2', ownerId: 'someone_else' } } });
 assert.equal(r.status, 400, 'only for this account');
-r = await call('GET', '/api/data/drive', { token: convertToken });
-assert.equal(r.status, 403, 'convert cannot read the drive');
+r = await call('GET', '/api/data/drive?prefix=node:', { token: convertToken });
+assert.equal(r.status, 200, 'convert can list drive files');
 r = await call('DELETE', '/api/data/drive/node:n_conv1', { token: convertToken });
 assert.equal(r.status, 403, 'convert cannot delete');
-ok('account settings and 60-second device codes (Main and websites); Convert adds to Drive only');
+ok('account settings and 60-second device codes (Main and websites); Convert reads and adds to Drive, never changes');
 
 /* delete account empties Deluxe Drive too */
 r = await call('POST', '/api/account/delete', { token: mainToken, body: { hash } });
