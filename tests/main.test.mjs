@@ -244,7 +244,23 @@ assert.equal(r.status, 400, 'unknown websites cannot use codes');
 r = await call('POST', '/api/account/device-code', { token: docsByCode });
 r = await call('POST', '/api/connect/device', { body: { code: r.data.code }, headers: { Origin: 'https://deluxe-convert.vercel.app' } });
 assert.equal(r.status, 200); assert.equal(r.data.app, 'convert');
-ok('account settings and 60-second device codes (Main and websites)');
+// Convert may add new Drive file records, nothing more
+const convertToken = r.data.token;
+const meId = (await call('GET', '/api/auth/me', { token: convertToken })).data.user.id;
+const fileRec = { id: 'n_conv1', ownerId: meId, parentId: 'f_deluxe_convert', type: 'file', name: 'a.pdf' };
+r = await call('PUT', '/api/data/drive/node:n_conv1', { token: convertToken, body: { value: fileRec } });
+assert.equal(r.status, 200, 'convert adds a file record');
+r = await call('PUT', '/api/data/drive/node:n_conv1', { token: convertToken, body: { value: { ...fileRec, name: 'changed' } } });
+assert.equal(r.status, 409, 'convert cannot change it');
+r = await call('PUT', '/api/data/drive/set:theme', { token: convertToken, body: { value: 'x' } });
+assert.equal(r.status, 400, 'only file records');
+r = await call('PUT', '/api/data/drive/node:n_conv2', { token: convertToken, body: { value: { ...fileRec, id: 'n_conv2', ownerId: 'someone_else' } } });
+assert.equal(r.status, 400, 'only for this account');
+r = await call('GET', '/api/data/drive', { token: convertToken });
+assert.equal(r.status, 403, 'convert cannot read the drive');
+r = await call('DELETE', '/api/data/drive/node:n_conv1', { token: convertToken });
+assert.equal(r.status, 403, 'convert cannot delete');
+ok('account settings and 60-second device codes (Main and websites); Convert adds to Drive only');
 
 /* delete account empties Deluxe Drive too */
 r = await call('POST', '/api/account/delete', { token: mainToken, body: { hash } });
