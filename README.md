@@ -16,7 +16,7 @@ address. If the Vercel address is not `deluxe-main.vercel.app`, change it in `pu
 
 - **Sign in / create account** happens only here. No other Deluxe website makes accounts.
 - **Every Deluxe website signs in with Deluxe Main**: Deluxe Drive, Deluxe Docs, Deluxe Mail, Deluxe
-  Meet, Deluxe Convert, Deluxe Translate, Deluxe Transfer and YouTube Guider AI. Tapping *Sign in with Deluxe Main* on any of them
+  Meet, Deluxe Convert, Deluxe Translate, Deluxe Transfer, Fast Edit and YouTube Guider AI. Tapping *Sign in with Deluxe Main* on any of them
   comes here, then goes straight back signed in.
 - **All data is saved here**: settings, histories, Deluxe Drive's folder and file list, mail, the Gmail
   connection. The one exception is **file contents, which are kept in Deluxe Drive**.

@@ -35,6 +35,7 @@
     ['Deluxe Meet', 'https://deluxe-meet.vercel.app', 'Video calls', 'meet'],
     ['Deluxe Convert', 'https://deluxe-convert.vercel.app', 'Convert files', 'convert'],
     ['Deluxe Transfer', 'https://deluxe-transfer.vercel.app', 'Send files with a code', 'transfer'],
+    ['Fast Edit', 'https://fastedit.vercel.app', 'Photos and videos', 'edit'],
     ['Deluxe Translate', 'https://deluxe-translate-app.vercel.app', 'Text and photos', 'translate'],
     ['YouTube Guider AI', 'https://deluxe-youtube-guider.vercel.app', 'Channel stats', 'youtube']
   ];
