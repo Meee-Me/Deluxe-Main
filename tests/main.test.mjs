@@ -62,6 +62,7 @@ assert.equal(appForOrigin('https://deluxe-translate-app.vercel.app'), 'translate
 assert.equal(appForOrigin('https://deluxe-youtube-guider.vercel.app'), 'youtube');
 assert.equal(appForOrigin('https://learning-ai-lilac.vercel.app'), 'max');
 assert.equal(appForOrigin('https://deluxe-meet.vercel.app'), 'meet');
+assert.equal(appForOrigin('https://fast-edit-nine.vercel.app'), 'edit');
 assert.equal(appForOrigin('https://fastedit.vercel.app'), 'edit');
 assert.equal(appForOrigin('https://fastedit-jjkt4dbao-deluxe12.vercel.app'), null, 'deploy-only addresses are not Fast Edit');
 assert.equal(appForOrigin('http://localhost:8000', { ALLOW_LOCALHOST: '1' }, 'docs'), 'docs');
