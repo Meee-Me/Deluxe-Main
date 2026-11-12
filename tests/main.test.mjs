@@ -289,13 +289,19 @@ ok('account settings and 60-second device codes (Main and websites); Convert rea
   assert.equal(r.status, 403, 'transfer cannot read mail');
   r = await call('DELETE', '/api/data/mail/' + msgKey, { headers: th(userId) });
   assert.equal(r.status, 403, 'transfer cannot delete mail');
-  r = await call('PUT', '/api/data/drive/node:t1', { headers: th(userId), body: { value: { id: 't1', ownerId: userId } } });
-  assert.equal(r.status, 403, 'transfer cannot touch drive');
+  r = await call('PUT', '/api/data/drive/node:t1', { headers: th(userId), body: { value: { id: 't1', ownerId: userId, type: 'file', name: 'a.pdf' } } });
+  assert.equal(r.status, 200, 'transfer adds a file to drive');
+  r = await call('PUT', '/api/data/drive/node:t1', { headers: th(userId), body: { value: { id: 't1', ownerId: userId, type: 'file', name: 'changed' } } });
+  assert.equal(r.status, 409, 'but cannot change one');
+  r = await call('GET', '/api/data/drive?prefix=node:', { headers: th(userId) });
+  assert.equal(r.status, 403, 'nor list drive files');
+  r = await call('PUT', '/api/data/transfer/received/ABC234', { headers: th(userId), body: { value: { code: 'ABC234' } } });
+  assert.equal(r.status, 200, 'transfer keeps its own history');
   r = await call('GET', '/api/data/mail/' + msgKey, { headers: appHeaders('mail-secret', userId) });
   assert.equal(r.data.value.subject, 'Files for you', 'the message is in Deluxe Mail');
   assert.equal(appForOrigin('https://deluxe-transfer.vercel.app'), 'transfer');
   APPS.transfer.keyHash = realHash;
-  ok('Deluxe Transfer signs in and adds Deluxe Mail messages, never reads or changes mail');
+  ok('Deluxe Transfer adds Deluxe Mail messages and Drive files, never reads or changes them');
 }
 
 /* delete account empties Deluxe Drive too */
