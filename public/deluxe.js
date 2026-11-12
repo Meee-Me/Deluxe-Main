@@ -34,6 +34,7 @@
     ['Deluxe Mail', 'https://deluxe-mail.vercel.app', 'Your @deluxemail.com inbox'],
     ['Deluxe Meet', 'https://deluxe-meet.vercel.app', 'Video calls'],
     ['Deluxe Convert', 'https://deluxe-convert.vercel.app', 'Convert files'],
+    ['Deluxe Transfer', 'https://deluxe-transfer.vercel.app', 'Send files with a code'],
     ['Deluxe Translate', 'https://deluxe-translate-app.vercel.app', 'Text and photos'],
     ['YouTube Guider AI', 'https://deluxe-youtube-guider.vercel.app', 'Channel stats']
   ];

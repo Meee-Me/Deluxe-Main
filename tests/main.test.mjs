@@ -262,6 +262,42 @@ r = await call('DELETE', '/api/data/drive/node:n_conv1', { token: convertToken }
 assert.equal(r.status, 403, 'convert cannot delete');
 ok('account settings and 60-second device codes (Main and websites); Convert reads and adds to Drive, never changes');
 
+/* Deluxe Transfer's server may add new Deluxe Mail messages, nothing else */
+{
+  const realHash = APPS.transfer.keyHash;
+  const tKey = 'test-only-transfer-key-0123456789abcdef';
+  APPS.transfer.keyHash = createHash('sha256').update(tKey).digest('hex');
+  const th = (account) => ({ Authorization: `App ${tKey}`, 'X-Deluxe-App': 'transfer', 'X-Deluxe-Account': account });
+  const msgKey = 'inbox/0000000000001-abc-123';
+  const msg = { id: 'abc-123', key: msgKey, folder: 'inbox', date: 1, read: false, starred: false, from: 'A <a@deluxemail.com>', to: 'b@deluxemail.com', subject: 'Files for you', body: 'Code: ABC234' };
+  r = await call('GET', '/api/server/account?handle=shivad.sujith', { headers: th() });
+  assert.equal(r.data.user.id, userId, 'transfer can find a person by handle');
+  r = await call('PUT', '/api/data/mail/' + msgKey, { headers: th(userId), body: { value: msg } });
+  assert.equal(r.status, 200, 'transfer adds an inbox message');
+  r = await call('PUT', '/api/data/mail/' + msgKey, { headers: th(userId), body: { value: { ...msg, subject: 'changed' } } });
+  assert.equal(r.status, 409, 'transfer cannot change a message');
+  const sentKey = 'sent/0000000000002-def';
+  r = await call('PUT', '/api/data/mail/' + sentKey, { headers: th(userId), body: { value: { ...msg, key: sentKey, folder: 'sent' } } });
+  assert.equal(r.status, 200, 'transfer adds a sent copy');
+  r = await call('PUT', '/api/data/mail/drafts/0000000000003-x', { headers: th(userId), body: { value: { ...msg, key: 'drafts/0000000000003-x', folder: 'drafts' } } });
+  assert.equal(r.status, 400, 'only inbox and sent');
+  r = await call('PUT', '/api/data/mail/welcomed', { headers: th(userId), body: { value: { x: 1 } } });
+  assert.equal(r.status, 400, 'only messages');
+  r = await call('PUT', '/api/data/mail/inbox/0000000000004-y', { headers: th(userId), body: { value: { ...msg, key: 'inbox/0000000000004-y', body: 5 } } });
+  assert.equal(r.status, 400, 'message fields are checked');
+  r = await call('GET', '/api/data/mail?prefix=inbox/', { headers: th(userId) });
+  assert.equal(r.status, 403, 'transfer cannot read mail');
+  r = await call('DELETE', '/api/data/mail/' + msgKey, { headers: th(userId) });
+  assert.equal(r.status, 403, 'transfer cannot delete mail');
+  r = await call('PUT', '/api/data/drive/node:t1', { headers: th(userId), body: { value: { id: 't1', ownerId: userId } } });
+  assert.equal(r.status, 403, 'transfer cannot touch drive');
+  r = await call('GET', '/api/data/mail/' + msgKey, { headers: appHeaders('mail-secret', userId) });
+  assert.equal(r.data.value.subject, 'Files for you', 'the message is in Deluxe Mail');
+  assert.equal(appForOrigin('https://deluxe-transfer.vercel.app'), 'transfer');
+  APPS.transfer.keyHash = realHash;
+  ok('Deluxe Transfer signs in and adds Deluxe Mail messages, never reads or changes mail');
+}
+
 /* delete account empties Deluxe Drive too */
 r = await call('POST', '/api/account/delete', { token: mainToken, body: { hash } });
 assert.equal(r.status, 401);
