@@ -28,15 +28,15 @@
   var GUEST_KEY = 'deluxe.guest';
   // Every Deluxe website, for the menu.
   var SITES = [
-    ['Deluxe Main', MAIN + '/', 'Your Deluxe account'],
-    ['Deluxe Drive', 'https://deluxe-drive-xi.vercel.app', 'Your files'],
-    ['Deluxe Docs', 'https://deluxe-docs-qtp5.vercel.app', 'Open documents'],
-    ['Deluxe Mail', 'https://deluxe-mail.vercel.app', 'Your @deluxemail.com inbox'],
-    ['Deluxe Meet', 'https://deluxe-meet.vercel.app', 'Video calls'],
-    ['Deluxe Convert', 'https://deluxe-convert.vercel.app', 'Convert files'],
-    ['Deluxe Transfer', 'https://deluxe-transfer.vercel.app', 'Send files with a code'],
-    ['Deluxe Translate', 'https://deluxe-translate-app.vercel.app', 'Text and photos'],
-    ['YouTube Guider AI', 'https://deluxe-youtube-guider.vercel.app', 'Channel stats']
+    ['Deluxe Main', MAIN + '/', 'Your Deluxe account', 'main'],
+    ['Deluxe Drive', 'https://deluxe-drive-xi.vercel.app', 'Your files', 'drive'],
+    ['Deluxe Docs', 'https://deluxe-docs-qtp5.vercel.app', 'Open documents', 'docs'],
+    ['Deluxe Mail', 'https://deluxe-mail.vercel.app', 'Your @deluxemail.com inbox', 'mail'],
+    ['Deluxe Meet', 'https://deluxe-meet.vercel.app', 'Video calls', 'meet'],
+    ['Deluxe Convert', 'https://deluxe-convert.vercel.app', 'Convert files', 'convert'],
+    ['Deluxe Transfer', 'https://deluxe-transfer.vercel.app', 'Send files with a code', 'transfer'],
+    ['Deluxe Translate', 'https://deluxe-translate-app.vercel.app', 'Text and photos', 'translate'],
+    ['YouTube Guider AI', 'https://deluxe-youtube-guider.vercel.app', 'Channel stats', 'youtube']
   ];
   var APP = (script && script.getAttribute('data-app')) || '';
   // data-session-key: a site that keeps its own Deluxe key (Deluxe Drive) can
@@ -165,7 +165,9 @@
       try { return localStorage.getItem(GUEST_KEY) === '1'; } catch (e) { return false; }
     },
     continueAsGuest: function () { setGuest(true); },
-    sites: function () { return SITES.filter(function (x) { return x[1]; }).map(function (x) { return { name: x[0], url: x[1], about: x[2] }; }); },
+    sites: function () { return SITES.filter(function (x) { return x[1]; }).map(function (x) { return { id: x[3], name: x[0], url: x[1], about: x[2], icon: MAIN + '/icons/' + x[3] + '.svg' }; }); },
+    // Each Deluxe website's icon (rounded SVG), e.g. Deluxe.icon('drive').
+    icon: function (id) { return MAIN + '/icons/' + id + '.svg'; },
     token: function () { return session ? session.token : null; },
     app: function () { return (session && session.app) || APP; },
     signIn: function (returnUrl) {
@@ -223,21 +225,30 @@
     if (!el) return;
     var css = 'font:600 14px/1 system-ui,sans-serif;border-radius:999px;padding:9px 14px;cursor:pointer;border:1px solid rgba(127,127,127,.35);background:' +
       (opts.background || '#6d4aff') + ';color:' + (opts.color || '#fff') + ';display:inline-flex;align-items:center;gap:8px;white-space:nowrap;min-height:38px';
-    var menuCss = 'position:absolute;right:0;top:calc(100% + 6px);z-index:9999;min-width:240px;max-width:calc(100vw - 24px);padding:6px;border-radius:12px;background:#fff;color:#111;box-shadow:0 8px 30px rgba(0,0,0,.25);font:14px/1.3 system-ui,sans-serif;text-align:left';
+    var menuCss = 'position:absolute;right:0;top:calc(100% + 6px);z-index:9999;min-width:240px;max-width:calc(100vw - 24px);max-height:calc(100vh - 100px);overflow:auto;-webkit-overflow-scrolling:touch;padding:6px;border-radius:12px;background:#fff;color:#111;box-shadow:0 8px 30px rgba(0,0,0,.25);font:14px/1.3 system-ui,sans-serif;text-align:left';
     var open = null;
     document.addEventListener('click', function () { if (open) { open.hidden = true; open = null; } });
 
-    function item(menu, label, sub, fn, href) {
+    function item(menu, label, sub, fn, href, icon) {
       var i = document.createElement(href ? 'a' : 'button');
       if (href) { i.href = href; i.target = '_blank'; i.rel = 'noopener'; } else i.type = 'button';
-      i.style.cssText = 'display:block;width:100%;text-align:left;padding:9px 12px;border:0;background:none;border-radius:8px;cursor:pointer;font:inherit;color:inherit;text-decoration:none';
-      i.appendChild(document.createTextNode(label));
+      i.style.cssText = 'display:flex;align-items:center;gap:10px;width:100%;box-sizing:border-box;text-align:left;padding:9px 12px;border:0;background:none;border-radius:8px;cursor:pointer;font:inherit;color:inherit;text-decoration:none';
+      if (icon) {
+        var img = document.createElement('img');
+        img.src = icon; img.alt = ''; img.width = 30; img.height = 30;
+        img.style.cssText = 'flex:none;width:30px;height:30px;border-radius:9px';
+        i.appendChild(img);
+      }
+      var words = document.createElement('span');
+      words.style.cssText = 'display:block;min-width:0';
+      words.appendChild(document.createTextNode(label));
       if (sub) {
         var small = document.createElement('div');
         small.textContent = sub;
         small.style.cssText = 'font-size:12px;color:#666;margin-top:2px';
-        i.appendChild(small);
+        words.appendChild(small);
       }
+      i.appendChild(words);
       i.onmouseenter = function () { i.style.background = '#f0edff'; };
       i.onmouseleave = function () { i.style.background = 'none'; };
       if (fn) i.onclick = function () { menu.hidden = true; open = null; fn(); };
@@ -270,9 +281,10 @@
       heading(menu, 'Deluxe websites');
       Deluxe.sites().forEach(function (site) {
         if (site.url && location.href.indexOf(site.url) === 0) return;
-        item(menu, site.name, site.about, null, site.url);
+        item(menu, site.name, site.about, null, site.url, site.icon);
       });
     }
+    function narrow() { return (window.innerWidth || 1024) < 560; }
     function draw(user) {
       el.innerHTML = '';
       var box = document.createElement('span');
@@ -281,17 +293,12 @@
       b.type = 'button';
       b.style.cssText = css;
       if (!user) {
-        b.textContent = opts.label || 'Sign in with Deluxe Main';
-        b.title = Deluxe.isGuest() ? 'You are using this site as a guest' : '';
+        // Short on phones, so the buttons fit any site's top bar.
+        b.textContent = opts.label || (narrow() ? 'Sign in' : 'Sign in with Deluxe Main');
+        b.title = 'Sign in with Deluxe Main';
+        b.title = Deluxe.isGuest() ? 'You are using this site as a guest' : 'Sign in with Deluxe Main';
         b.onclick = function () { Deluxe.signIn(); };
         box.appendChild(b);
-        var c = document.createElement('button');
-        c.type = 'button';
-        c.textContent = 'Use a code';
-        c.title = 'Sign in with a 60-second code from another device';
-        c.style.cssText = css + ';background:transparent;color:inherit';
-        c.onclick = function () { codeDialog('enter'); };
-        box.appendChild(c);
       } else {
         var initial = document.createElement('span');
         initial.textContent = (user.name || '?').slice(0, 1).toUpperCase();
@@ -314,7 +321,12 @@
       g.title = 'Deluxe websites';
       g.textContent = '∷';
       g.style.cssText = css + ';padding:9px 12px;background:transparent;color:inherit;font-size:18px';
-      box.appendChild(withMenu(g, siteList));
+      box.appendChild(withMenu(g, user ? siteList : function (menu) {
+        heading(menu, 'Your Deluxe account');
+        item(menu, 'Sign in with Deluxe Main', '', function () { Deluxe.signIn(); }, null, MAIN + '/icons/main.svg');
+        item(menu, 'Use a code from another device', 'Signed in elsewhere? Get a 60-second code there', function () { codeDialog('enter'); });
+        siteList(menu);
+      }));
       el.appendChild(box);
     }
     draw(Deluxe.user());
