@@ -315,6 +315,37 @@ $('#auth-guest').onclick = continueAsGuest;
 
 /* ---------------- home ---------------- */
 
+// Websites that are exclusive to Deluxe (the server can also mark one with exclusive: true).
+const EXCLUSIVE = new Set(['edit', 'max']);
+const isExclusive = (app) => app.exclusive === true || EXCLUSIVE.has(app.id);
+
+// Draws a list of Deluxe website links into a grid.
+function drawApps(apps, list) {
+  apps.innerHTML = '';
+  for (const app of list) {
+    const link = document.createElement('a');
+    link.className = `app${app.url ? '' : ' off'}`;
+    if (app.url) link.href = app.url;
+    link.target = '_blank';
+    link.rel = 'noopener';
+    link.style.animationDelay = `${apps.children.length * 60}ms`;
+    const dot = tile(app.id, app.name);
+    const text = document.createElement('div');
+    const title = document.createElement('b');
+    title.textContent = app.name;
+    const about = document.createElement('span');
+    about.className = 'muted';
+    about.textContent = app.url ? app.about : 'Address not set yet';
+    text.append(title, about);
+    const go = document.createElement('span');
+    go.className = 'go';
+    go.setAttribute('aria-hidden', 'true');
+    go.textContent = '→';
+    link.append(dot, text, go);
+    apps.append(link);
+  }
+}
+
 async function drawHome() {
   let account;
   try {
@@ -340,30 +371,11 @@ async function drawHome() {
     ? `${formatBytes(total)} across ${account.usage.length} website${account.usage.length === 1 ? '' : 's'} (files are counted in Deluxe Drive)`
     : 'Nothing saved yet';
 
-  const apps = $('#apps');
-  apps.innerHTML = '';
-  for (const app of account.apps) {
-    const link = document.createElement('a');
-    link.className = `app${app.url ? '' : ' off'}`;
-    if (app.url) link.href = app.url;
-    link.target = '_blank';
-    link.rel = 'noopener';
-    link.style.animationDelay = `${apps.children.length * 60}ms`;
-    const dot = tile(app.id, app.name);
-    const text = document.createElement('div');
-    const title = document.createElement('b');
-    title.textContent = app.name;
-    const about = document.createElement('span');
-    about.className = 'muted';
-    about.textContent = app.url ? app.about : 'Address not set yet';
-    text.append(title, about);
-    const go = document.createElement('span');
-    go.className = 'go';
-    go.setAttribute('aria-hidden', 'true');
-    go.textContent = '→';
-    link.append(dot, text, go);
-    apps.append(link);
-  }
+  // Most Deluxe websites are listed together. The ones made only for Deluxe get their own place.
+  const exclusive = account.apps.filter(isExclusive);
+  drawApps($('#apps'), account.apps.filter((app) => !isExclusive(app)));
+  drawApps($('#apps-exclusive'), exclusive);
+  for (const id of ['exclusive-title', 'exclusive-note', 'apps-exclusive']) $('#' + id).hidden = !exclusive.length;
 
   const list = $('#sessions');
   list.innerHTML = '';

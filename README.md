@@ -23,6 +23,13 @@ address. If the Vercel address is not `deluxe-main.vercel.app`, change it in `pu
 - The home page lists every Deluxe website and lets you change your name and password, see and sign out
   the websites you are signed in to, and delete your account (which also deletes its Drive files).
 
+## Deluxe Exclusive Websites
+
+Websites made only for Deluxe, **Fast Edit** and **Max Tutor**, have their own place: a separate
+"Deluxe Exclusive Websites" section on the home page and in the websites menu that every Deluxe
+website shows. To add one, list it in `worker/apps.js` as usual and add its id to `EXCLUSIVE` in
+`public/app.js` and a `true` flag in `SITES` in `public/deluxe.js`.
+
 ## How it fits together
 
 ```

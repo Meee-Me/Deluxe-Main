@@ -35,10 +35,10 @@
     ['Deluxe Meet', 'https://deluxe-meet.vercel.app', 'Video calls', 'meet'],
     ['Deluxe Convert', 'https://deluxe-convert.vercel.app', 'Convert files', 'convert'],
     ['Deluxe Transfer', 'https://deluxe-transfer.vercel.app', 'Send files with a code', 'transfer'],
-    ['Fast Edit', 'https://fast-edit-nine.vercel.app', 'Photos and videos', 'edit'],
+    ['Fast Edit', 'https://fast-edit-nine.vercel.app', 'Photos and videos', 'edit', true],
     ['Deluxe Translate', 'https://deluxe-translate-app.vercel.app', 'Text and photos', 'translate'],
     ['YouTube Guider AI', 'https://deluxe-youtube-guider.vercel.app', 'Channel stats', 'youtube'],
-    ['Max Tutor', 'https://learning-ai-lilac.vercel.app', 'Your AI tutor', 'max']
+    ['Max Tutor', 'https://learning-ai-lilac.vercel.app', 'Your AI tutor', 'max', true]
   ];
   var APP = (script && script.getAttribute('data-app')) || '';
   // data-session-key: a site that keeps its own Deluxe key (Deluxe Drive) can
@@ -167,7 +167,7 @@
       try { return localStorage.getItem(GUEST_KEY) === '1'; } catch (e) { return false; }
     },
     continueAsGuest: function () { setGuest(true); },
-    sites: function () { return SITES.filter(function (x) { return x[1]; }).map(function (x) { return { id: x[3], name: x[0], url: x[1], about: x[2], icon: MAIN + '/icons/' + x[3] + '.svg' }; }); },
+    sites: function () { return SITES.filter(function (x) { return x[1]; }).map(function (x) { return { id: x[3], name: x[0], url: x[1], about: x[2], exclusive: !!x[4], icon: MAIN + '/icons/' + x[3] + '.svg' }; }); },
     // Each Deluxe website's icon (rounded SVG), e.g. Deluxe.icon('drive').
     icon: function (id) { return MAIN + '/icons/' + id + '.svg'; },
     token: function () { return session ? session.token : null; },
@@ -280,9 +280,14 @@
       return wrap;
     }
     function siteList(menu) {
+      var sites = Deluxe.sites().filter(function (site) { return !(site.url && location.href.indexOf(site.url) === 0); });
       heading(menu, 'Deluxe websites');
-      Deluxe.sites().forEach(function (site) {
-        if (site.url && location.href.indexOf(site.url) === 0) return;
+      sites.filter(function (site) { return !site.exclusive; }).forEach(function (site) {
+        item(menu, site.name, site.about, null, site.url, site.icon);
+      });
+      var only = sites.filter(function (site) { return site.exclusive; });
+      if (only.length) heading(menu, 'Deluxe Exclusive Websites');
+      only.forEach(function (site) {
         item(menu, site.name, site.about, null, site.url, site.icon);
       });
     }
