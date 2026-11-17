@@ -281,13 +281,13 @@
     }
     function siteList(menu) {
       var sites = Deluxe.sites().filter(function (site) { return !(site.url && location.href.indexOf(site.url) === 0); });
-      heading(menu, 'Deluxe websites');
-      sites.filter(function (site) { return !site.exclusive; }).forEach(function (site) {
-        item(menu, site.name, site.about, null, site.url, site.icon);
-      });
       var only = sites.filter(function (site) { return site.exclusive; });
       if (only.length) heading(menu, 'Deluxe Exclusive Websites');
       only.forEach(function (site) {
+        item(menu, site.name, site.about, null, site.url, site.icon);
+      });
+      heading(menu, 'Deluxe websites');
+      sites.filter(function (site) { return !site.exclusive; }).forEach(function (site) {
         item(menu, site.name, site.about, null, site.url, site.icon);
       });
     }
