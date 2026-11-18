@@ -318,6 +318,9 @@ $('#auth-guest').onclick = continueAsGuest;
 // Websites that are exclusive to Deluxe (the server can also mark one with exclusive: true).
 const EXCLUSIVE = new Set(['edit', 'max']);
 const isExclusive = (app) => app.exclusive === true || EXCLUSIVE.has(app.id);
+// Deluxe Games: games that sign in with Deluxe Main (the server can also mark one with category: 'games').
+const GAMES = new Set(['kickoff']);
+const isGame = (app) => app.category === 'games' || GAMES.has(app.id);
 
 // Draws a list of Deluxe website links into a grid.
 function drawApps(apps, list) {
@@ -373,9 +376,12 @@ async function drawHome() {
 
   // Most Deluxe websites are listed together. The ones made only for Deluxe get their own place.
   const exclusive = account.apps.filter(isExclusive);
-  drawApps($('#apps'), account.apps.filter((app) => !isExclusive(app)));
+  const games = account.apps.filter((app) => isGame(app) && !isExclusive(app));
+  drawApps($('#apps'), account.apps.filter((app) => !isExclusive(app) && !isGame(app)));
   drawApps($('#apps-exclusive'), exclusive);
+  drawApps($('#apps-games'), games);
   for (const id of ['exclusive-title', 'exclusive-note', 'apps-exclusive']) $('#' + id).hidden = !exclusive.length;
+  for (const id of ['games-title', 'games-note', 'apps-games']) $('#' + id).hidden = !games.length;
 
   const list = $('#sessions');
   list.innerHTML = '';
