@@ -39,7 +39,7 @@
     ['Deluxe Translate', 'https://deluxe-translate-app.vercel.app', 'Text and photos', 'translate'],
     ['YouTube Guider AI', 'https://deluxe-youtube-guider.vercel.app', 'Channel stats', 'youtube'],
     ['Max Tutor', 'https://learning-ai-lilac.vercel.app', 'Your AI tutor', 'max', true],
-    ['Nitro Kickoff', 'https://nitro-kickoff.vercel.app', 'Rocket-car soccer', 'kickoff', 'games']
+    ['Nitro Kickoff', 'https://rocket-league-blond.vercel.app', 'Rocket-car soccer', 'kickoff', 'games']
   ];
   var APP = (script && script.getAttribute('data-app')) || '';
   // data-session-key: a site that keeps its own Deluxe key (Deluxe Drive) can
