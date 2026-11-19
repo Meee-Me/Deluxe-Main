@@ -315,6 +315,44 @@ $('#auth-guest').onclick = continueAsGuest;
 
 /* ---------------- home ---------------- */
 
+// Websites that are exclusive to Deluxe (the server can also mark one with exclusive: true).
+const EXCLUSIVE = new Set(['edit', 'max']);
+const isExclusive = (app) => app.exclusive === true || EXCLUSIVE.has(app.id);
+// Deluxe chatbots: AI assistants that sign in with Deluxe Main (the server marks one with category: 'chatbots').
+// They are shown first on the home page, above every other section.
+const CHATBOTS = new Set(['advocate']);
+const isChatbot = (app) => app.category === 'chatbots' || CHATBOTS.has(app.id);
+// Deluxe Games: games that sign in with Deluxe Main (the server can also mark one with category: 'games').
+const GAMES = new Set(['kickoff']);
+const isGame = (app) => app.category === 'games' || GAMES.has(app.id);
+
+// Draws a list of Deluxe website links into a grid.
+function drawApps(apps, list) {
+  apps.innerHTML = '';
+  for (const app of list) {
+    const link = document.createElement('a');
+    link.className = `app${app.url ? '' : ' off'}`;
+    if (app.url) link.href = app.url;
+    link.target = '_blank';
+    link.rel = 'noopener';
+    link.style.animationDelay = `${apps.children.length * 60}ms`;
+    const dot = tile(app.id, app.name);
+    const text = document.createElement('div');
+    const title = document.createElement('b');
+    title.textContent = app.name;
+    const about = document.createElement('span');
+    about.className = 'muted';
+    about.textContent = app.url ? app.about : 'Address not set yet';
+    text.append(title, about);
+    const go = document.createElement('span');
+    go.className = 'go';
+    go.setAttribute('aria-hidden', 'true');
+    go.textContent = '→';
+    link.append(dot, text, go);
+    apps.append(link);
+  }
+}
+
 async function drawHome() {
   let account;
   try {
@@ -340,33 +378,18 @@ async function drawHome() {
     ? `${formatBytes(total)} across ${account.usage.length} website${account.usage.length === 1 ? '' : 's'} (files are counted in Deluxe Drive)`
     : 'Nothing saved yet';
 
-  // Sites are grouped by category: "Deluxe websites" (the default) and "Deluxe chatbots".
-  const grids = { websites: $('#apps'), chatbots: $('#chatbots') };
-  for (const grid of Object.values(grids)) grid.innerHTML = '';
-  for (const app of account.apps) {
-    const apps = grids[app.category] || grids.websites;
-    const link = document.createElement('a');
-    link.className = `app${app.url ? '' : ' off'}`;
-    if (app.url) link.href = app.url;
-    link.target = '_blank';
-    link.rel = 'noopener';
-    link.style.animationDelay = `${apps.children.length * 60}ms`;
-    const dot = tile(app.id, app.name);
-    const text = document.createElement('div');
-    const title = document.createElement('b');
-    title.textContent = app.name;
-    const about = document.createElement('span');
-    about.className = 'muted';
-    about.textContent = app.url ? app.about : 'Address not set yet';
-    text.append(title, about);
-    const go = document.createElement('span');
-    go.className = 'go';
-    go.setAttribute('aria-hidden', 'true');
-    go.textContent = '→';
-    link.append(dot, text, go);
-    apps.append(link);
-  }
-  $('#chatbots-section').hidden = !grids.chatbots.children.length; // no chatbots listed: no empty heading
+  // Most Deluxe websites are listed together. The ones made only for Deluxe get their own place.
+  const chatbots = account.apps.filter(isChatbot);
+  const rest = account.apps.filter((app) => !isChatbot(app));
+  const exclusive = rest.filter(isExclusive);
+  const games = rest.filter((app) => isGame(app) && !isExclusive(app));
+  drawApps($('#apps-chatbots'), chatbots);
+  drawApps($('#apps'), rest.filter((app) => !isExclusive(app) && !isGame(app)));
+  drawApps($('#apps-exclusive'), exclusive);
+  drawApps($('#apps-games'), games);
+  for (const id of ['chatbots-title', 'chatbots-note', 'apps-chatbots']) $('#' + id).hidden = !chatbots.length; // no chatbots: no empty heading
+  for (const id of ['exclusive-title', 'exclusive-note', 'apps-exclusive']) $('#' + id).hidden = !exclusive.length;
+  for (const id of ['games-title', 'games-note', 'apps-games']) $('#' + id).hidden = !games.length;
 
   const list = $('#sessions');
   list.innerHTML = '';

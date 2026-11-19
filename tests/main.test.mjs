@@ -4,7 +4,7 @@
 import assert from 'node:assert/strict';
 import { pbkdf2Sync, randomBytes } from 'node:crypto';
 import { MainCore, handleFor } from '../worker/core.js';
-import { appForOrigin, APPS, CATEGORIES, publicApps } from '../worker/apps.js';
+import { appForOrigin, APPS, publicApps } from '../worker/apps.js';
 import { createHash } from 'node:crypto';
 import { NodeSql } from './fakes.mjs';
 
@@ -64,27 +64,29 @@ assert.equal(appForOrigin('https://advocate-ai-india-evil.vercel.app', { APP_ORI
 assert.equal(appForOrigin('https://deluxe-convert.vercel.app'), 'convert');
 assert.equal(appForOrigin('https://deluxe-translate-app.vercel.app'), 'translate');
 assert.equal(appForOrigin('https://deluxe-youtube-guider.vercel.app'), 'youtube');
+assert.equal(appForOrigin('https://learning-ai-lilac.vercel.app'), 'max');
 assert.equal(appForOrigin('https://deluxe-meet.vercel.app'), 'meet');
+assert.equal(appForOrigin('https://fast-edit-nine.vercel.app'), 'edit');
+assert.equal(appForOrigin('https://fastedit.vercel.app'), 'edit');
+assert.equal(appForOrigin('https://fastedit-jjkt4dbao-deluxe12.vercel.app'), null, 'deploy-only addresses are not Fast Edit');
+assert.equal(appForOrigin('https://rocket-league-blond.vercel.app'), 'kickoff');
+assert.equal(appForOrigin('https://nitro-kickoff.vercel.app'), null, 'only the real game address signs in');
 assert.equal(appForOrigin('http://localhost:8000', { ALLOW_LOCALHOST: '1' }, 'docs'), 'docs');
 assert.equal(appForOrigin('https://mail.example.netlify.app', env), 'mail');
 assert.equal(handleFor('Shivad Sujith'), 'shivad.sujith');
 ok('website addresses and handles');
 
-/* Home page sections: Advocate AI India is listed under "Deluxe chatbots"; everything else stays a website */
+/* Home page: Advocate AI India is listed as a chatbot (a link only). Everything else is unchanged. */
 {
   const apps = publicApps({});
   const adv = apps.find((a) => a.id === 'advocate');
   assert.equal(adv.category, 'chatbots');
   assert.equal(adv.url, 'https://advocate-ai-india.vercel.app');
-  assert.ok(apps.filter((a) => a.id !== 'advocate').every((a) => a.category === 'websites'), 'other sites are unchanged');
-  assert.equal(CATEGORIES.chatbots, 'Deluxe chatbots');
+  assert.ok(apps.filter((a) => a.id !== 'advocate').every((a) => a.category !== 'chatbots'), 'no other site is a chatbot');
+  assert.ok(['drive', 'docs', 'convert', 'translate', 'youtube', 'meet', 'mail', 'transfer', 'max', 'edit', 'kickoff'].every((id) => apps.some((a) => a.id === id)), 'the existing sites are all still listed');
   // Being listed (a link) is not permission to sign in: that still needs the address in APP_ORIGINS.
   assert.equal(appForOrigin(adv.url), null);
-  const saved = APPS.advocate.category;
-  APPS.advocate.category = 'not-a-real-category';
-  assert.equal(publicApps({}).find((a) => a.id === 'advocate').category, 'websites', 'unknown categories fall back to websites');
-  APPS.advocate.category = saved;
-  ok('Advocate AI India is a link under Deluxe chatbots; listing it grants no sign-in');
+  ok('Advocate AI India is listed under Deluxe chatbots; listing it grants no sign-in');
 }
 
 /* create account */
