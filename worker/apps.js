@@ -101,6 +101,14 @@ export const APPS = {
     // Only this fingerprint is here; the key itself is only on Vercel.
     keyHash: 'f76bda7a47eb72da8133d8fda903e4334b9503644d254439cea483789e0ea976',
   },
+  advocate: {
+    name: 'Advocate AI India',
+    about: 'AI assistant for Indian advocates',
+    // No address yet: add the site's real address with the APP_ORIGINS variable,
+    // e.g. {"advocate": ["https://your-advocate-site.vercel.app"]}. Never a wildcard.
+    origins: [],
+    reads: [],
+  },
   transfer: {
     name: 'Deluxe Transfer',
     about: 'Send files with a code',

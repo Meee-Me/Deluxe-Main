@@ -57,6 +57,10 @@ assert.equal(appForOrigin('https://deluxe-docs-evil.vercel.app'), null, 'no verc
 assert.equal(appForOrigin('https://deluxe-docs-iota.vercel.app'), 'docs');
 assert.equal(appForOrigin('https://deluxe-docs-qtp5.vercel.app'), 'docs');
 assert.equal(appForOrigin('https://deluxe-mail.vercel.app'), 'mail');
+/* Advocate AI India: signs in only from an address added with APP_ORIGINS */
+assert.equal(appForOrigin('https://advocate-ai-india.vercel.app'), null, 'no built-in address');
+assert.equal(appForOrigin('https://advocate-ai-india.vercel.app', { APP_ORIGINS: JSON.stringify({ advocate: ['https://advocate-ai-india.vercel.app'] }) }), 'advocate');
+assert.equal(appForOrigin('https://advocate-ai-india-evil.vercel.app', { APP_ORIGINS: JSON.stringify({ advocate: ['https://advocate-ai-india.vercel.app'] }) }), null);
 assert.equal(appForOrigin('https://deluxe-convert.vercel.app'), 'convert');
 assert.equal(appForOrigin('https://deluxe-translate-app.vercel.app'), 'translate');
 assert.equal(appForOrigin('https://deluxe-youtube-guider.vercel.app'), 'youtube');
