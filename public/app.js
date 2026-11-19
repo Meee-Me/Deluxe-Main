@@ -318,6 +318,10 @@ $('#auth-guest').onclick = continueAsGuest;
 // Websites that are exclusive to Deluxe (the server can also mark one with exclusive: true).
 const EXCLUSIVE = new Set(['edit', 'max']);
 const isExclusive = (app) => app.exclusive === true || EXCLUSIVE.has(app.id);
+// Deluxe chatbots: AI assistants that sign in with Deluxe Main (the server marks one with category: 'chatbots').
+// They are shown first on the home page, above every other section.
+const CHATBOTS = new Set(['advocate']);
+const isChatbot = (app) => app.category === 'chatbots' || CHATBOTS.has(app.id);
 // Deluxe Games: games that sign in with Deluxe Main (the server can also mark one with category: 'games').
 const GAMES = new Set(['kickoff']);
 const isGame = (app) => app.category === 'games' || GAMES.has(app.id);
@@ -375,11 +379,15 @@ async function drawHome() {
     : 'Nothing saved yet';
 
   // Most Deluxe websites are listed together. The ones made only for Deluxe get their own place.
-  const exclusive = account.apps.filter(isExclusive);
-  const games = account.apps.filter((app) => isGame(app) && !isExclusive(app));
-  drawApps($('#apps'), account.apps.filter((app) => !isExclusive(app) && !isGame(app)));
+  const chatbots = account.apps.filter(isChatbot);
+  const rest = account.apps.filter((app) => !isChatbot(app));
+  const exclusive = rest.filter(isExclusive);
+  const games = rest.filter((app) => isGame(app) && !isExclusive(app));
+  drawApps($('#apps-chatbots'), chatbots);
+  drawApps($('#apps'), rest.filter((app) => !isExclusive(app) && !isGame(app)));
   drawApps($('#apps-exclusive'), exclusive);
   drawApps($('#apps-games'), games);
+  for (const id of ['chatbots-title', 'chatbots-note', 'apps-chatbots']) $('#' + id).hidden = !chatbots.length; // no chatbots: no empty heading
   for (const id of ['exclusive-title', 'exclusive-note', 'apps-exclusive']) $('#' + id).hidden = !exclusive.length;
   for (const id of ['games-title', 'games-note', 'apps-games']) $('#' + id).hidden = !games.length;
 
