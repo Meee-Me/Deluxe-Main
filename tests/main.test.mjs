@@ -4,7 +4,7 @@
 import assert from 'node:assert/strict';
 import { pbkdf2Sync, randomBytes } from 'node:crypto';
 import { MainCore, handleFor } from '../worker/core.js';
-import { appForOrigin, APPS } from '../worker/apps.js';
+import { appForOrigin, APPS, CATEGORIES, publicApps } from '../worker/apps.js';
 import { createHash } from 'node:crypto';
 import { NodeSql } from './fakes.mjs';
 
@@ -69,6 +69,23 @@ assert.equal(appForOrigin('http://localhost:8000', { ALLOW_LOCALHOST: '1' }, 'do
 assert.equal(appForOrigin('https://mail.example.netlify.app', env), 'mail');
 assert.equal(handleFor('Shivad Sujith'), 'shivad.sujith');
 ok('website addresses and handles');
+
+/* Home page sections: Advocate AI India is listed under "Deluxe chatbots"; everything else stays a website */
+{
+  const apps = publicApps({});
+  const adv = apps.find((a) => a.id === 'advocate');
+  assert.equal(adv.category, 'chatbots');
+  assert.equal(adv.url, 'https://advocate-ai-india.vercel.app');
+  assert.ok(apps.filter((a) => a.id !== 'advocate').every((a) => a.category === 'websites'), 'other sites are unchanged');
+  assert.equal(CATEGORIES.chatbots, 'Deluxe chatbots');
+  // Being listed (a link) is not permission to sign in: that still needs the address in APP_ORIGINS.
+  assert.equal(appForOrigin(adv.url), null);
+  const saved = APPS.advocate.category;
+  APPS.advocate.category = 'not-a-real-category';
+  assert.equal(publicApps({}).find((a) => a.id === 'advocate').category, 'websites', 'unknown categories fall back to websites');
+  APPS.advocate.category = saved;
+  ok('Advocate AI India is a link under Deluxe chatbots; listing it grants no sign-in');
+}
 
 /* create account */
 let r = await call('GET', '/api/health');

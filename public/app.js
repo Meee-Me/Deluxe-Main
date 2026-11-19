@@ -340,9 +340,11 @@ async function drawHome() {
     ? `${formatBytes(total)} across ${account.usage.length} website${account.usage.length === 1 ? '' : 's'} (files are counted in Deluxe Drive)`
     : 'Nothing saved yet';
 
-  const apps = $('#apps');
-  apps.innerHTML = '';
+  // Sites are grouped by category: "Deluxe websites" (the default) and "Deluxe chatbots".
+  const grids = { websites: $('#apps'), chatbots: $('#chatbots') };
+  for (const grid of Object.values(grids)) grid.innerHTML = '';
   for (const app of account.apps) {
+    const apps = grids[app.category] || grids.websites;
     const link = document.createElement('a');
     link.className = `app${app.url ? '' : ' off'}`;
     if (app.url) link.href = app.url;
@@ -364,6 +366,7 @@ async function drawHome() {
     link.append(dot, text, go);
     apps.append(link);
   }
+  $('#chatbots-section').hidden = !grids.chatbots.children.length; // no chatbots listed: no empty heading
 
   const list = $('#sessions');
   list.innerHTML = '';

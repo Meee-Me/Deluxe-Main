@@ -19,6 +19,12 @@
 // More origins can be added without editing this file: set the Worker variable
 // APP_ORIGINS to JSON such as {"mail": ["https://my-mail.netlify.app"]}.
 
+// Sections of Deluxe Main's home page. A site without a `category` is a "website".
+export const CATEGORIES = {
+  websites: 'Deluxe websites',
+  chatbots: 'Deluxe chatbots',
+};
+
 export const APPS = {
   main: {
     name: 'Deluxe Main',
@@ -104,8 +110,11 @@ export const APPS = {
   advocate: {
     name: 'Advocate AI India',
     about: 'AI assistant for Indian advocates',
-    // No address yet: add the site's real address with the APP_ORIGINS variable,
-    // e.g. {"advocate": ["https://your-advocate-site.vercel.app"]}. Never a wildcard.
+    category: 'chatbots',
+    // The link shown on Deluxe Main's home page. It does NOT let the site sign in: sign-in only works from
+    // addresses listed in `origins` or the APP_ORIGINS variable, e.g.
+    // {"advocate": ["https://advocate-ai-india.vercel.app"]}. Never a wildcard.
+    url: 'https://advocate-ai-india.vercel.app',
     origins: [],
     reads: [],
   },
@@ -180,5 +189,6 @@ export function publicApps(env = {}) {
     name: APPS[id].name,
     about: APPS[id].about,
     url: APPS[id].url || (table[id][0] && !table[id][0].includes('*') ? table[id][0] : ''),
+    category: APPS[id].category && CATEGORIES[APPS[id].category] ? APPS[id].category : 'websites',
   }));
 }
