@@ -4,7 +4,7 @@
 import assert from 'node:assert/strict';
 import { pbkdf2Sync, randomBytes } from 'node:crypto';
 import { MainCore, handleFor } from '../worker/core.js';
-import { appForOrigin, APPS } from '../worker/apps.js';
+import { appForOrigin, APPS, publicApps } from '../worker/apps.js';
 import { createHash } from 'node:crypto';
 import { NodeSql } from './fakes.mjs';
 
@@ -57,6 +57,25 @@ assert.equal(appForOrigin('https://deluxe-docs-evil.vercel.app'), null, 'no verc
 assert.equal(appForOrigin('https://deluxe-docs-iota.vercel.app'), 'docs');
 assert.equal(appForOrigin('https://deluxe-docs-qtp5.vercel.app'), 'docs');
 assert.equal(appForOrigin('https://deluxe-mail.vercel.app'), 'mail');
+/* Advocate AI India: signs in only from its one exact address (built in), never from look-alikes */
+{
+  const OK = 'https://advocate-ai-india.vercel.app';
+  assert.equal(appForOrigin(OK), 'advocate');
+  assert.deepEqual(APPS.advocate.origins, [OK], 'exactly one origin, no wildcard');
+  for (const bad of [
+    'http://advocate-ai-india.vercel.app',                  // not https
+    'https://advocate-ai-india.vercel.app.evil.com',        // suffix trick
+    'https://evil-advocate-ai-india.vercel.app',            // prefix trick
+    'https://advocate-ai-india-evil.vercel.app',            // anyone can create "advocate-ai-india-anything.vercel.app"
+    'https://advocate-ai-india.vercel.app:8443',            // other port
+    'https://advocate-ai-india.netlify.app',                // other host
+    'https://advocate.vercel.app',
+  ]) assert.equal(appForOrigin(bad), null, `${bad} must not sign in`);
+  // No special powers: it only reaches its own data.
+  assert.deepEqual(APPS.advocate.reads, []);
+  assert.equal(APPS.advocate.adds, undefined);
+  assert.equal(APPS.advocate.keyHash, undefined, 'no server-to-server key');
+}
 assert.equal(appForOrigin('https://deluxe-convert.vercel.app'), 'convert');
 assert.equal(appForOrigin('https://deluxe-translate-app.vercel.app'), 'translate');
 assert.equal(appForOrigin('https://deluxe-youtube-guider.vercel.app'), 'youtube');
@@ -71,6 +90,18 @@ assert.equal(appForOrigin('http://localhost:8000', { ALLOW_LOCALHOST: '1' }, 'do
 assert.equal(appForOrigin('https://mail.example.netlify.app', env), 'mail');
 assert.equal(handleFor('Shivad Sujith'), 'shivad.sujith');
 ok('website addresses and handles');
+
+/* Home page: Advocate AI India is listed as a chatbot (a link only). Everything else is unchanged. */
+{
+  const apps = publicApps({});
+  const adv = apps.find((a) => a.id === 'advocate');
+  assert.equal(adv.category, 'chatbots');
+  assert.equal(adv.url, 'https://advocate-ai-india.vercel.app');
+  assert.ok(apps.filter((a) => a.id !== 'advocate').every((a) => a.category !== 'chatbots'), 'no other site is a chatbot');
+  assert.ok(['drive', 'docs', 'convert', 'translate', 'youtube', 'meet', 'mail', 'transfer', 'max', 'edit', 'kickoff'].every((id) => apps.some((a) => a.id === id)), 'the existing sites are all still listed');
+  assert.equal(appForOrigin(adv.url), 'advocate', 'its link address is the address it signs in from');
+  ok('Advocate AI India is listed under Deluxe chatbots and signs in only from its exact address');
+}
 
 /* create account */
 let r = await call('GET', '/api/health');
@@ -308,6 +339,39 @@ ok('account settings and 60-second device codes (Main and websites); Convert rea
   assert.equal(appForOrigin('https://deluxe-transfer.vercel.app'), 'transfer');
   APPS.transfer.keyHash = realHash;
   ok('Deluxe Transfer adds Deluxe Mail messages and Drive files, never reads or changes them');
+}
+
+/* Advocate AI India: the whole sign-in handshake from its production address */
+{
+  const SITE = 'https://advocate-ai-india.vercel.app';
+  const back = `${SITE}/auth/callback?state=abc123`;
+  let r = await call('POST', '/api/connect/check', { token: mainToken, body: { return: back, app: 'advocate' } });
+  assert.equal(r.status, 200); assert.equal(r.data.app, 'advocate'); assert.equal(r.data.origin, SITE);
+  r = await call('POST', '/api/connect/approve', { token: mainToken, body: { return: back, app: 'advocate' } });
+  assert.equal(r.status, 200);
+  const returned = new URL(r.data.redirect);
+  assert.equal(returned.origin, SITE); assert.equal(returned.searchParams.get('state'), 'abc123', 'the site\'s state comes back untouched');
+  const code = /deluxe_code=([0-9a-f]{48})/.exec(returned.hash)[1];
+  // Only the site the code was made for can trade it.
+  r = await call('POST', '/api/connect/exchange', { body: { code }, headers: { Origin: 'https://advocate-ai-india-evil.vercel.app' } });
+  assert.equal(r.status, 400, 'a look-alike origin cannot use the code');
+  r = await call('POST', '/api/connect/approve', { token: mainToken, body: { return: back, app: 'advocate' } });
+  const code2 = /deluxe_code=([0-9a-f]{48})/.exec(new URL(r.data.redirect).hash)[1];
+  r = await call('POST', '/api/connect/exchange', { body: { code: code2 }, headers: { Origin: SITE } });
+  assert.equal(r.status, 200); assert.equal(r.data.app, 'advocate'); assert.equal(r.data.user.id, userId);
+  const advToken = r.data.token;
+  r = await call('POST', '/api/connect/exchange', { body: { code: code2 }, headers: { Origin: SITE } });
+  assert.equal(r.status, 400, 'a code works once');
+  r = await call('GET', '/api/auth/me', { token: advToken });
+  assert.equal(r.status, 200); assert.equal(r.data.app, 'advocate'); assert.deepEqual(r.data.reads, ['advocate']);
+  // Its key reaches only its own data.
+  r = await call('PUT', '/api/data/advocate/hello', { token: advToken, body: { value: 1 } });
+  assert.equal(r.status, 200);
+  for (const other of ['drive', 'docs', 'mail', 'translate']) {
+    assert.equal((await call('GET', `/api/data/${other}`, { token: advToken })).status, 403, `cannot read ${other}`);
+    assert.equal((await call('PUT', `/api/data/${other}/x`, { token: advToken, body: { value: 1 } })).status, 403, `cannot write ${other}`);
+  }
+  ok('Advocate AI India: full sign-in from its exact address; look-alike origins refused; key reaches only its own data');
 }
 
 /* delete account empties Deluxe Drive too */
