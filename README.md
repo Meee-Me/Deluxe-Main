@@ -38,6 +38,10 @@ repository), which saves each player's match record to their account. To add a g
 `worker/apps.js`, add its id to `GAMES` in `public/app.js` and give it the category `'games'` in `SITES`
 in `public/deluxe.js`.
 
+Nitro Kickoff also has **online rooms** for playing with other people. They live on the Deluxe server (the
+deluxe-drive repository, `/arena/CODE`), not here: a room accepts only a Nitro Kickoff key from this site's
+sign-in, so nothing in Deluxe Main changes when a game adds rooms.
+
 ## How it fits together
 
 ```
