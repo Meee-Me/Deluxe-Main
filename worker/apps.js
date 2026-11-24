@@ -101,6 +101,13 @@ export const APPS = {
     // Only this fingerprint is here; the key itself is only on Vercel.
     keyHash: 'f76bda7a47eb72da8133d8fda903e4334b9503644d254439cea483789e0ea976',
   },
+  search: {
+    name: 'Deluxe Search',
+    about: 'Search the web with AI',
+    url: 'https://deluxe-search-engine.vercel.app',
+    origins: ['https://deluxe-search-engine.vercel.app'],
+    reads: [],
+  },
   transfer: {
     name: 'Deluxe Transfer',
     about: 'Send files with a code',
