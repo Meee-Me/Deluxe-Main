@@ -57,6 +57,8 @@ assert.equal(appForOrigin('https://deluxe-docs-evil.vercel.app'), null, 'no verc
 assert.equal(appForOrigin('https://deluxe-docs-iota.vercel.app'), 'docs');
 assert.equal(appForOrigin('https://deluxe-docs-qtp5.vercel.app'), 'docs');
 assert.equal(appForOrigin('https://deluxe-mail.vercel.app'), 'mail');
+assert.equal(appForOrigin('https://deluxe-mail-q1ga6cmso-deluxe12.vercel.app'), 'mail');
+assert.equal(appForOrigin('https://deluxe-mail-q1ga6cmso-other.vercel.app'), null);
 /* Advocate AI India: signs in only from its one exact address (built in), never from look-alikes */
 {
   const OK = 'https://advocate-ai-india.vercel.app';

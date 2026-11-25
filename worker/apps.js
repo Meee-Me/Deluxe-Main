@@ -102,7 +102,8 @@ export const APPS = {
     name: 'Deluxe Mail',
     about: 'Your @deluxemail.com inbox',
     url: 'https://deluxe-mail.vercel.app',
-    origins: ['https://deluxe-mail.vercel.app'],
+    // the second is Vercel's per-deployment address (deluxe-mail-<id>-deluxe12.vercel.app)
+    origins: ['https://deluxe-mail.vercel.app', 'https://deluxe-mail-*-deluxe12.vercel.app'],
     reads: [],
     // SHA-256 of the key Deluxe Mail's server sends (MAIN_APP_KEY on Vercel).
     // Only this fingerprint is here; the key itself is only on Vercel.
