@@ -1,0 +1,63 @@
+/* The Deluxe suite look, shared by every Deluxe website.
+ *
+ *   <html data-deluxe-app="drive">
+ *   <link rel="stylesheet" href="https://deluxe-main.vercel.app/deluxe-suite.css">
+ *
+ * Each app owns one "gem" colour (the same gradient as its icon in /icons).
+ * The suite adds: the gem band across the top of the screen, the suite's two
+ * typefaces, and focus rings and text selection in the app's gem colour.
+ * Everything else (layout, backgrounds, components) stays the site's own. */
+
+@import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,600..800&display=swap');
+
+:root {
+  --gem-a: #8b6cff;
+  --gem-b: #4a2bd6;
+  --suite-body: 'Atkinson Hyperlegible Next', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --suite-display: 'Bricolage Grotesque', 'Atkinson Hyperlegible Next', system-ui, sans-serif;
+}
+html[data-deluxe-app='main'] { --gem-a: #8b6cff; --gem-b: #4a2bd6; }
+html[data-deluxe-app='drive'] { --gem-a: #34d399; --gem-b: #0ea5e9; }
+html[data-deluxe-app='docs'] { --gem-a: #60a5fa; --gem-b: #6366f1; }
+html[data-deluxe-app='mail'] { --gem-a: #f5c86a; --gem-b: #e08a2e; }
+html[data-deluxe-app='meet'] { --gem-a: #4ade80; --gem-b: #14b8a6; }
+html[data-deluxe-app='convert'] { --gem-a: #22d3ee; --gem-b: #3b82f6; }
+html[data-deluxe-app='transfer'] { --gem-a: #fb923c; --gem-b: #f43f5e; }
+html[data-deluxe-app='translate'] { --gem-a: #f472b6; --gem-b: #a855f7; }
+html[data-deluxe-app='youtube'] { --gem-a: #ff5a6e; --gem-b: #e11d48; }
+
+/* One body face everywhere; form controls follow it. Monospace bits that a
+   site sets on purpose (codes, file previews) keep their own face. */
+body { font-family: var(--suite-body) !important; }
+button, input, select, textarea { font-family: inherit; }
+
+/* App names and headings in the display face, set tight. */
+h1, h2, h3,
+.brand, .logo, .brand .t, header b, .top .brand {
+  font-family: var(--suite-display) !important;
+  letter-spacing: -0.02em;
+}
+h1 { font-weight: 800; }
+
+/* The gem band: the app's colour across the top of the screen. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: 4px;
+  z-index: 2147483000;
+  pointer-events: none;
+  background: linear-gradient(90deg, var(--gem-a), var(--gem-b));
+}
+
+/* The app's gem icon beside its name (sites add <img class="gem">). */
+img.gem {
+  width: 1.6em;
+  height: 1.6em;
+  border-radius: 0.42em;
+  vertical-align: middle;
+  flex: none;
+}
+
+:focus-visible { outline: 3px solid var(--gem-a) !important; outline-offset: 2px; }
+::selection { background: color-mix(in srgb, var(--gem-a) 38%, transparent); }
