@@ -84,6 +84,13 @@ export const APPS = {
     ],
     reads: [],
   },
+  max: {
+    name: 'Max Tutor',
+    about: 'Your AI tutor',
+    url: 'https://learning-ai-lilac.vercel.app',
+    origins: ['https://learning-ai-lilac.vercel.app'],
+    reads: [],
+  },
   meet: {
     name: 'Deluxe Meet',
     about: 'Video calls in your browser',
@@ -100,6 +107,35 @@ export const APPS = {
     // SHA-256 of the key Deluxe Mail's server sends (MAIN_APP_KEY on Vercel).
     // Only this fingerprint is here; the key itself is only on Vercel.
     keyHash: 'f76bda7a47eb72da8133d8fda903e4334b9503644d254439cea483789e0ea976',
+  },
+  edit: {
+    name: 'Fast Edit',
+    about: 'Edit photos and videos with AI',
+    url: 'https://fast-edit-nine.vercel.app',
+    origins: ['https://fast-edit-nine.vercel.app', 'https://fastedit.vercel.app'],
+    // Saves its own data only (your saved looks); never reads or adds to other websites.
+    reads: [],
+  },
+  kickoff: {
+    name: 'Nitro Kickoff',
+    about: 'Rocket-car soccer against a bot',
+    url: 'https://rocket-league-blond.vercel.app',
+    origins: ['https://rocket-league-blond.vercel.app'],
+    // A Deluxe Games website. Saves its own data only (match record and
+    // settings); never reads or adds to other websites.
+    reads: [],
+  },
+  advocate: {
+    name: 'Advocate AI India',
+    about: 'AI assistant for Indian advocates',
+    // Shown in "Deluxe chatbots" on Deluxe Main's home page.
+    category: 'chatbots',
+    // The link on the home page.
+    url: 'https://advocate-ai-india.vercel.app',
+    // The one address this site may sign in from. Exact match only: never a wildcard (anyone can create
+    // "advocate-anything.vercel.app"), and a new address needs its own entry here or in APP_ORIGINS.
+    origins: ['https://advocate-ai-india.vercel.app'],
+    reads: [],
   },
   search: {
     name: 'Deluxe Search',
@@ -179,5 +215,6 @@ export function publicApps(env = {}) {
     name: APPS[id].name,
     about: APPS[id].about,
     url: APPS[id].url || (table[id][0] && !table[id][0].includes('*') ? table[id][0] : ''),
+    ...(APPS[id].category ? { category: APPS[id].category } : {}),
   }));
 }
