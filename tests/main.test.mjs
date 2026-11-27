@@ -58,7 +58,12 @@ assert.equal(appForOrigin('https://deluxe-docs-iota.vercel.app'), 'docs');
 assert.equal(appForOrigin('https://deluxe-docs-qtp5.vercel.app'), 'docs');
 assert.equal(appForOrigin('https://deluxe-mail.vercel.app'), 'mail');
 assert.equal(appForOrigin('https://deluxe-mail-q1ga6cmso-deluxe12.vercel.app'), 'mail');
-assert.equal(appForOrigin('https://deluxe-mail-q1ga6cmso-other.vercel.app'), null);
+for (const bad of [
+  'https://deluxe-mail-q1ga6cmso-other.vercel.app',        // another team
+  'https://deluxe-mail-evil-deluxe12.vercel.app',          // anyone can register a project with this name: no wildcard
+  'https://deluxe-mail-phish-attack-deluxe12.vercel.app',
+  'https://deluxe-mail-q1ga6cmso-deluxe12.vercel.app.evil.com',
+]) assert.equal(appForOrigin(bad), null, `${bad} must not sign in as Mail`);
 /* Advocate AI India: signs in only from its one exact address (built in), never from look-alikes */
 {
   const OK = 'https://advocate-ai-india.vercel.app';
