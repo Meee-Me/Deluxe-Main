@@ -78,6 +78,23 @@ assert.equal(appForOrigin('https://deluxe-mail-q1ga6cmso-other.vercel.app'), nul
   assert.equal(APPS.advocate.adds, undefined);
   assert.equal(APPS.advocate.keyHash, undefined, 'no server-to-server key');
 }
+/* Deluxe Messenger: signs in only from its one exact address, with no special powers */
+{
+  const OK = 'https://deluxe-messenger.vercel.app';
+  assert.equal(appForOrigin(OK), 'messenger');
+  assert.deepEqual(APPS.messenger.origins, [OK], 'exactly one origin, no wildcard');
+  for (const bad of [
+    'http://deluxe-messenger.vercel.app',                   // not https
+    'https://deluxe-messenger.vercel.app.evil.com',         // suffix trick
+    'https://evil-deluxe-messenger.vercel.app',             // prefix trick
+    'https://deluxe-messenger-evil.vercel.app',             // anyone can create "deluxe-messenger-anything.vercel.app"
+    'https://deluxe-messenger.vercel.app:8443',             // other port
+    'https://deluxe-messenger.netlify.app',                 // other host
+  ]) assert.equal(appForOrigin(bad), null, `${bad} must not sign in`);
+  assert.deepEqual(APPS.messenger.reads, []);
+  assert.equal(APPS.messenger.adds, undefined);
+  assert.equal(APPS.messenger.keyHash, undefined, 'no server-to-server key');
+}
 assert.equal(appForOrigin('https://deluxe-convert.vercel.app'), 'convert');
 assert.equal(appForOrigin('https://deluxe-translate-app.vercel.app'), 'translate');
 assert.equal(appForOrigin('https://deluxe-youtube-guider.vercel.app'), 'youtube');
@@ -376,6 +393,33 @@ ok('account settings and 60-second device codes (Main and websites); Convert rea
     assert.equal((await call('PUT', `/api/data/${other}/x`, { token: advToken, body: { value: 1 } })).status, 403, `cannot write ${other}`);
   }
   ok('Advocate AI India: full sign-in from its exact address; look-alike origins refused; key reaches only its own data');
+}
+
+/* Deluxe Messenger: the whole sign-in handshake from its production address */
+{
+  const SITE = 'https://deluxe-messenger.vercel.app';
+  let r = await call('POST', '/api/connect/approve', { token: mainToken, body: { return: SITE + '/', app: 'messenger' } });
+  assert.equal(r.status, 200);
+  const returned = new URL(r.data.redirect);
+  assert.equal(returned.origin, SITE);
+  const code = /deluxe_code=([0-9a-f]{48})/.exec(returned.hash)[1];
+  r = await call('POST', '/api/connect/exchange', { body: { code }, headers: { Origin: 'https://deluxe-messenger-evil.vercel.app' } });
+  assert.equal(r.status, 400, 'a look-alike origin cannot use the code');
+  r = await call('POST', '/api/connect/approve', { token: mainToken, body: { return: SITE + '/', app: 'messenger' } });
+  const code2 = /deluxe_code=([0-9a-f]{48})/.exec(new URL(r.data.redirect).hash)[1];
+  r = await call('POST', '/api/connect/exchange', { body: { code: code2 }, headers: { Origin: SITE } });
+  assert.equal(r.status, 200); assert.equal(r.data.app, 'messenger'); assert.equal(r.data.user.id, userId);
+  const msgToken = r.data.token;
+  r = await call('GET', '/api/auth/me', { token: msgToken });
+  assert.equal(r.status, 200); assert.equal(r.data.app, 'messenger'); assert.deepEqual(r.data.reads, ['messenger']);
+  // No special powers: only its own data.
+  for (const other of ['drive', 'docs', 'mail', 'advocate']) {
+    assert.equal((await call('GET', `/api/data/${other}`, { token: msgToken })).status, 403, `cannot read ${other}`);
+  }
+  // Signing out of the site ends its key.
+  assert.equal((await call('POST', '/api/auth/logout', { token: msgToken })).status, 200);
+  assert.equal((await call('GET', '/api/auth/me', { token: msgToken })).status, 401);
+  ok('Deluxe Messenger: full sign-in from its exact address; look-alike origins refused; key ends on sign-out');
 }
 
 /* delete account empties Deluxe Drive too */
