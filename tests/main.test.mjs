@@ -52,6 +52,8 @@ assert.equal(appForOrigin('https://deluxe-translate-8m27.netlify.app'), 'transla
 assert.equal(appForOrigin('https://deploy-preview-4--deluxe-translate-8m27.netlify.app'), 'translate');
 assert.equal(appForOrigin('https://evil.netlify.app'), null);
 assert.equal(appForOrigin('https://deluxe-translate-8m27.netlify.app.evil.com'), null);
+assert.equal(appForOrigin('https://deluxe-maps.vercel.app'), 'maps');
+assert.equal(appForOrigin('https://deluxe-maps-evil.vercel.app'), null, 'only the real Maps address signs in');
 assert.equal(appForOrigin('http://localhost:8000', {}, 'docs'), null);
 assert.equal(appForOrigin('https://deluxe-docs-evil.vercel.app'), null, 'no vercel.app wildcards');
 assert.equal(appForOrigin('https://deluxe-docs-iota.vercel.app'), 'docs');

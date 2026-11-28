@@ -144,6 +144,14 @@ export const APPS = {
     origins: ['https://deluxe-search-engine.vercel.app'],
     reads: [],
   },
+  maps: {
+    name: 'Deluxe Maps',
+    about: 'Find places and get directions',
+    url: 'https://deluxe-maps.vercel.app',
+    origins: ['https://deluxe-maps.vercel.app'],
+    // Only signs you in; saves its own data only, never reads or adds to other websites.
+    reads: [],
+  },
   transfer: {
     name: 'Deluxe Transfer',
     about: 'Send files with a code',

@@ -35,6 +35,7 @@
     ['Deluxe Meet', 'https://deluxe-meet.vercel.app', 'Video calls', 'meet'],
     ['Deluxe Search', 'https://deluxe-search-engine.vercel.app', 'Search the web with AI', 'search'],
     ['Deluxe Convert', 'https://deluxe-convert.vercel.app', 'Convert files', 'convert'],
+    ['Deluxe Maps', 'https://deluxe-maps.vercel.app', 'Find places and routes', 'maps'],
     ['Deluxe Transfer', 'https://deluxe-transfer.vercel.app', 'Send files with a code', 'transfer'],
     ['Fast Edit', 'https://fast-edit-nine.vercel.app', 'Photos and videos', 'edit', true],
     ['Deluxe Translate', 'https://deluxe-translate-app.vercel.app', 'Text and photos', 'translate'],

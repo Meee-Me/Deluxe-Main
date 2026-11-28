@@ -24,6 +24,7 @@ html[data-deluxe-app='meet'] { --gem-a: #4ade80; --gem-b: #14b8a6; }
 html[data-deluxe-app='convert'] { --gem-a: #22d3ee; --gem-b: #3b82f6; }
 html[data-deluxe-app='transfer'] { --gem-a: #fb923c; --gem-b: #f43f5e; }
 html[data-deluxe-app='translate'] { --gem-a: #f472b6; --gem-b: #a855f7; }
+html[data-deluxe-app='maps'] { --gem-a: #a855f7; --gem-b: #5b21b6; }
 html[data-deluxe-app='youtube'] { --gem-a: #ff5a6e; --gem-b: #e11d48; }
 
 /* One body face everywhere; form controls follow it. Monospace bits that a
